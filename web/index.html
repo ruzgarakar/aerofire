@@ -732,7 +732,7 @@
           <div class="field">
             <label class="check-row"><input id="boundaryToggle" type="checkbox" checked> Show Hatay province boundary</label>
             <label class="check-row check-gap"><input id="staticToggle" type="checkbox"> Show non-fire points (static heat + offshore)</label>
-            <label class="check-row check-gap"><input id="liveToggle" type="checkbox"> Show live detections (last 2 days)</label>
+            <label class="check-row check-gap"><input id="liveToggle" type="checkbox"> Show live detections (updates hourly)</label>
             <div class="range-meta" id="liveStatus" aria-live="polite"></div>
           </div>
         </div>
@@ -1294,7 +1294,7 @@
         if (!$("liveToggle").checked) { map.removeLayer(liveLayer); status.textContent = ""; return; }
         status.textContent = "Loading…";
         try {
-          if (!liveData) {
+          {
             const r = await fetch("data/live.json?t=" + Date.now(), { cache: "no-store" });
             if (!r.ok) throw new Error(r.status);
             liveData = await r.json();
@@ -1314,10 +1314,11 @@
         });
         liveLayer.addTo(map);
         const g = liveData.meta && liveData.meta.generated;
-        status.textContent = (pts.length ? `${pts.length} live detection${pts.length === 1 ? "" : "s"} in Hatay` : "No new fire detected in Hatay in the last 2 days") +
+        status.textContent = (pts.length ? `${pts.length} live detection${pts.length === 1 ? "" : "s"} in Hatay (last ${(liveData.meta.live && liveData.meta.live.days) || 7} days)` : "No new fire detected in Hatay recently") +
           (g ? ` · updated ${new Date(g).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}` : "");
       }
       $("liveToggle").addEventListener("change", showLive);
+      setInterval(() => { if ($("liveToggle").checked) { liveData = null; showLive(); } }, 10 * 60 * 1000);
       $("zoomIn").addEventListener("click", () => map.zoomIn());
       $("zoomOut").addEventListener("click", () => map.zoomOut());
       $("zoomReset").addEventListener("click", () => map.fitBounds(mapBounds.pad(.04)));
