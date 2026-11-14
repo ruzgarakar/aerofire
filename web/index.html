@@ -1,0 +1,1321 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#2c001e">
+  <script>
+    const systemColorScheme = window.matchMedia("(prefers-color-scheme: dark)");
+    let manualTheme = null;
+    const applySystemColorScheme = ({ matches } = systemColorScheme) => {
+      const theme = manualTheme || (matches ? "dark" : "light");
+      document.documentElement.dataset.theme = theme;
+      document.querySelector('meta[name="theme-color"]').content = theme === "dark" ? "#2c001e" : "#f5f3f1";
+      const themeSwitch = document.getElementById("themeToggle");
+      if (themeSwitch) {
+        themeSwitch.setAttribute("aria-checked", String(theme === "dark"));
+        document.getElementById("themeMode").textContent = manualTheme
+          ? "Elle seçildi"
+          : "Bilgisayar temasını izliyor";
+      }
+    };
+    applySystemColorScheme(systemColorScheme);
+    systemColorScheme.addEventListener("change", applySystemColorScheme);
+  </script>
+  <title>Hatay Yangın Gözlem Paneli — NASA Space Apps</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1014;
+      --panel: #11191f;
+      --panel-2: #151f26;
+      --line: #27343c;
+      --muted: #91a0a8;
+      --text: #edf2ef;
+      --soft: #c2ccc9;
+      --orange: #ff744f;
+      --gold: #f3bb64;
+      --blue: #66b9e8;
+      --green: #83c9aa;
+      --sidebar: 286px;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--bg); color: var(--text); }
+    button, select, input { font: inherit; }
+    button { color: inherit; }
+    .app { min-height: 100vh; display: grid; grid-template-columns: var(--sidebar) minmax(0, 1fr); }
+
+    .sidebar {
+      position: sticky; top: 0; height: 100vh; overflow-y: auto;
+      padding: 24px 18px 20px; background: #0e151a; border-right: 1px solid var(--line);
+      display: flex; flex-direction: column; gap: 23px;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; }
+    .brand-title { font-size: 13px; font-weight: 750; letter-spacing: .12em; }
+    .brand-sub { margin-top: 3px; color: var(--muted); font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
+    .side-label { margin: 0 0 10px; color: #75858e; font-size: 10px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
+    .layer-list { display: grid; gap: 7px; }
+    .layer-option {
+      width: 100%; padding: 10px 11px; display: flex; align-items: center; gap: 10px;
+      text-align: left; border: 1px solid transparent; border-radius: 10px;
+      background: transparent; color: #aab6bb; cursor: pointer; transition: .18s ease;
+    }
+    .layer-option:hover { background: #172127; color: var(--text); }
+    .layer-option[aria-pressed="true"] { border-color: #82513d; background: #2a211e; color: #ffe2cc; }
+    .layer-icon { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; border-radius: 8px; background: #1b272d; color: #e6a267; }
+    .layer-icon svg { width: 15px; height: 15px; }
+    .layer-name { display: block; font-size: 12px; font-weight: 650; }
+    .layer-detail { display: block; margin-top: 2px; color: #78878f; font-size: 10px; }
+    .side-divider { height: 1px; background: var(--line); }
+    .field { margin-top: 13px; }
+    .field label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; color: #c4cfce; font-size: 11px; font-weight: 600; }
+    select {
+      width: 100%; padding: 9px 10px; border: 1px solid #2c3940; border-radius: 8px;
+      outline: none; background: #141d22; color: var(--text); font-size: 12px;
+    }
+    select:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid #efa06c; outline-offset: 2px; }
+    input[type="range"] { width: 100%; accent-color: var(--orange); }
+    .range-meta { display: flex; justify-content: space-between; margin-top: 1px; color: #78878f; font-size: 10px; }
+    .check-row { display: flex; align-items: center; gap: 9px; color: #c4cfce; font-size: 11px; cursor: pointer; }
+    .check-row input { accent-color: var(--orange); }
+    .legend { display: flex; flex-wrap: wrap; gap: 11px; margin-top: 12px; color: #8d9ba1; font-size: 10px; }
+    .legend-item { display: flex; align-items: center; gap: 6px; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; }
+    .side-note { margin-top: auto; padding: 12px; border: 1px solid #26343a; border-radius: 10px; background: #121b20; color: #94a2a7; font-size: 10px; line-height: 1.6; }
+    .side-note strong { color: #d7dfdc; font-weight: 650; }
+
+    .main { min-width: 0; padding: 25px clamp(18px, 3vw, 42px) 28px; }
+    .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 21px; }
+    .eyebrow { color: var(--orange); font-size: 10px; font-weight: 750; letter-spacing: .17em; text-transform: uppercase; }
+    h1 { margin: 7px 0 5px; font-size: clamp(24px, 3vw, 35px); letter-spacing: -.045em; line-height: 1.08; }
+    .subtitle { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .top-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+    .action {
+      padding: 9px 11px; border: 1px solid #2b3940; border-radius: 8px;
+      background: #131c21; color: #cbd4d1; font-size: 11px; cursor: pointer;
+    }
+    .action:hover { border-color: #53636b; background: #19242a; }
+    .action.primary { border-color: #754735; background: #30211c; color: #ffd1b4; }
+
+    .metrics { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 11px; margin-bottom: 14px; }
+    .metric { min-width: 0; padding: 14px 15px 13px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); }
+    .metric-head { display: flex; align-items: center; justify-content: space-between; gap: 5px; color: #9caaae; font-size: 10px; }
+    .metric-symbol { color: #84939a; font-size: 14px; }
+    .metric-value { margin-top: 8px; font-size: clamp(21px, 2.4vw, 29px); font-weight: 720; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+    .metric-foot { margin-top: 4px; color: #829098; font-size: 10px; }
+    .value-orange { color: #ffa477; }
+    .value-blue { color: #84c9ed; }
+    .value-gold { color: #efc57c; }
+
+    .map-card { overflow: hidden; border: 1px solid var(--line); border-radius: 12px; background: #11191e; }
+    .map-head { min-height: 53px; padding: 11px 15px; display: flex; justify-content: space-between; align-items: center; gap: 12px; border-bottom: 1px solid #26343b; }
+    .map-heading { display: flex; align-items: center; gap: 9px; font-size: 12px; font-weight: 700; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: #f28559; box-shadow: 0 0 10px #f28559b0; }
+    .map-meta { margin-top: 4px; color: #809097; font-size: 10px; }
+    .map-tools { display: flex; align-items: center; gap: 6px; }
+    .zoom-btn { width: 29px; height: 29px; border: 1px solid #304047; border-radius: 7px; background: #172127; color: #cfdbd6; cursor: pointer; }
+    .zoom-btn:hover { background: #223037; }
+    .map-stage {
+      position: relative; height: clamp(340px, 51vh, 550px); overflow: hidden;
+      background-color: #10191e;
+      background-image: radial-gradient(ellipse at 48% 54%, #1a2a2d 0, #111b20 53%, #10171b 100%);
+    }
+    #leafletMap { width: 100%; height: 100%; background: #e8ece8; }
+    .map-legend {
+      position: absolute; z-index: 450; left: 13px; top: 12px; padding: 8px 10px; border: 1px solid #344249;
+      border-radius: 8px; background: #10191ddd; display: flex; align-items: center; gap: 11px;
+      color: #b6c1bd; font-size: 10px; backdrop-filter: blur(7px);
+    }
+    .scale { display: flex; align-items: center; gap: 5px; }
+    .scale-bar { width: 70px; height: 6px; border-radius: 4px; background: linear-gradient(90deg, #315c75, #c89950, #ff6347); }
+    .map-error { position: absolute; z-index: 500; top: 12px; left: 50%; transform: translateX(-50%); width: min(90%, 520px); padding: 10px 12px; border: 1px solid #c3c4c7; border-radius: 3px; background: #fff; color: #50575e; font-size: 11px; text-align: center; }
+    .map-error[hidden] { display: none; }
+
+    .below-grid { display: grid; grid-template-columns: 1.12fr .88fr; gap: 13px; margin-top: 14px; }
+    .info-card { min-width: 0; padding: 15px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); }
+    .card-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 13px; font-size: 12px; font-weight: 700; }
+    .card-tag { color: #809097; font-size: 9px; font-weight: 500; }
+    .chart { display: flex; align-items: flex-end; justify-content: space-around; gap: 10px; height: 112px; padding: 3px 4px 0; border-bottom: 1px solid #334149; }
+    .bar-group { flex: 1; min-width: 20px; height: 100%; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; gap: 6px; }
+    .bar-value { color: #bfc9c5; font-size: 9px; }
+    .bar { width: min(28px, 70%); min-height: 3px; border-radius: 4px 4px 0 0; background: linear-gradient(180deg, #ff9564, #bc593f); transition: height .2s ease; }
+    .bar-label { margin-top: 7px; color: #89979c; font-size: 9px; }
+    .compare { display: grid; gap: 14px; padding: 3px 1px 5px; }
+    .compare-row { display: grid; grid-template-columns: 60px 1fr 48px; align-items: center; gap: 10px; color: #aebbb9; font-size: 10px; }
+    .compare-track { height: 8px; overflow: hidden; border-radius: 8px; background: #26333a; }
+    .compare-fill { height: 100%; border-radius: inherit; transition: width .2s ease; }
+    .compare-number { text-align: right; color: #d4ddda; font-variant-numeric: tabular-nums; }
+    .takeaway { margin-top: 13px; padding: 10px 11px; border-left: 2px solid var(--orange); border-radius: 0 7px 7px 0; background: #211d1a; color: #c8c4ba; font-size: 10px; line-height: 1.6; }
+    .takeaway strong { color: #ffd1a7; }
+    .method { margin-top: 13px; padding: 13px 15px; border: 1px solid #29363c; border-radius: 10px; color: #89979c; font-size: 10px; line-height: 1.65; }
+    .method strong { color: #c5d0cb; }
+    .footer { margin-top: 15px; display: flex; justify-content: space-between; gap: 12px; color: #66757c; font-size: 9px; }
+    .empty-state { position: absolute; inset: 0; display: grid; place-items: center; padding: 20px; color: #aab8b7; text-align: center; font-size: 12px; pointer-events: none; }
+    .empty-state[hidden] { display: none; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    :root {
+      color-scheme: light;
+      --bg: #f0f0f1;
+      --panel: #fff;
+      --panel-2: #f6f7f7;
+      --line: #c3c4c7;
+      --muted: #646970;
+      --text: #1d2327;
+      --soft: #50575e;
+      --orange: #c2410c;
+      --gold: #8a5b00;
+      --blue: #2271b1;
+      --green: #008a20;
+      --sidebar: 272px;
+    }
+
+    body { background: var(--bg); color: var(--text); }
+    .sidebar { gap: 17px; padding: 18px 12px; background: #1d2327; border-right-color: #2c3338; color: #f0f0f1; }
+    .brand { padding: 0 5px 5px; }
+    .brand-title { color: #f0f0f1; font-size: 14px; font-weight: 600; letter-spacing: 0; }
+    .brand-sub { color: #a7aaad; font-size: 9px; letter-spacing: .06em; }
+    .primary-nav { padding-bottom: 13px; border-bottom: 1px solid #3c434a; }
+    .primary-nav .side-label { margin: 0 0 7px 10px; color: #a7aaad; font-size: 10px; letter-spacing: .08em; }
+    .primary-link { min-height: 36px; padding: 7px 10px; display: flex; align-items: center; gap: 10px; border-radius: 3px; color: #f0f0f1; font-size: 12px; text-decoration: none; }
+    .primary-link:hover { background: #2c3338; color: #fff; }
+    .primary-link[aria-current="page"] { background: #2271b1; color: #fff; }
+    .nav-symbol { width: 18px; color: #c3c4c7; font-size: 16px; text-align: center; }
+    .primary-link[aria-current="page"] .nav-symbol { color: #fff; }
+    .side-label { color: #a7aaad; letter-spacing: .08em; }
+    .layer-list { gap: 3px; }
+    .layer-option { padding: 7px 9px; gap: 8px; border-radius: 3px; color: #dcdcde; }
+    .layer-option:hover { background: #2c3338; color: #fff; }
+    .layer-option[aria-pressed="true"] { border-color: #3c434a; background: #2c3338; color: #fff; box-shadow: inset 3px 0 #72aee6; }
+    .layer-icon { background: transparent; color: #a7aaad; }
+    .layer-name { font-size: 11px; font-weight: 600; }
+    .layer-detail { color: #a7aaad; }
+    .side-divider { background: #3c434a; }
+    .field label, .check-row { color: #dcdcde; }
+    select { border-color: #8c8f94; border-radius: 3px; background: #fff; color: #1d2327; }
+    select:focus-visible, button:focus-visible, input:focus-visible { outline-color: #72aee6; }
+    .range-meta, .legend { color: #a7aaad; }
+    .check-row input { accent-color: #72aee6; }
+    .side-note { padding: 10px; border-color: #3c434a; border-radius: 3px; background: #2c3338; color: #c3c4c7; }
+    .side-note strong { color: #fff; }
+
+    .main { padding-top: 24px; }
+    .eyebrow { color: #646970; letter-spacing: .04em; }
+    h1 { color: #1d2327; font-size: clamp(24px, 2.8vw, 32px); font-weight: 600; letter-spacing: -.025em; }
+    .subtitle { color: #646970; }
+    .action { border-color: #8c8f94; border-radius: 3px; background: #f6f7f7; color: #2c3338; }
+    .action:hover { border-color: #2271b1; background: #f0f6fc; color: #135e96; }
+    .action.primary { border-color: #2271b1; background: #2271b1; color: #fff; }
+    .action.primary:hover { border-color: #135e96; background: #135e96; color: #fff; }
+    .metric, .info-card { border-color: #c3c4c7; border-radius: 4px; background: #fff; box-shadow: 0 1px 1px #0000000a; }
+    .metric-head, .metric-foot { color: #646970; }
+    .metric-value { color: #1d2327; }
+    .value-orange { color: #c2410c; }
+    .value-blue { color: #2271b1; }
+    .value-gold { color: #8a5b00; }
+    .map-card { border-color: #c3c4c7; border-radius: 4px; background: #fff; }
+    .map-head { border-bottom-color: #c3c4c7; background: #fff; }
+    .map-heading { color: #1d2327; }
+    .live-dot { background: #c2410c; box-shadow: none; }
+    .map-meta { color: #646970; }
+    .zoom-btn { border-color: #8c8f94; border-radius: 3px; background: #f6f7f7; color: #2c3338; }
+    .zoom-btn:hover { border-color: #2271b1; background: #f0f6fc; }
+    .map-stage { height: clamp(380px, 58vh, 620px); background: #e8ece8; }
+    .map-legend { border-color: #c3c4c7; border-radius: 3px; background: #fffE; color: #2c3338; }
+    .leaflet-container { color: #1d2327; font: 12px Inter, ui-sans-serif, system-ui, sans-serif; }
+    .leaflet-popup-content-wrapper, .leaflet-popup-tip { border-radius: 3px; }
+    .leaflet-popup-content-wrapper { box-shadow: 0 2px 8px #0002; }
+    .leaflet-popup-content { line-height: 1.65; }
+    .leaflet-popup-content strong { color: #c2410c; }
+    .leaflet-control-attribution { font-size: 9px !important; }
+    .leaflet-control-scale-line { border-color: #646970; color: #50575e; background: #ffffffd9; }
+    .card-title { color: #1d2327; }
+    .card-tag { color: #646970; }
+    .chart { border-bottom-color: #c3c4c7; }
+    .bar { background: #2271b1; }
+    .bar-value { color: #50575e; }
+    .bar-label { color: #646970; }
+    .compare-row { color: #50575e; }
+    .compare-track { background: #dcdcde; }
+    .compare-number { color: #1d2327; }
+    .takeaway { border-left-color: #c2410c; border-radius: 0 3px 3px 0; background: #fcf0e8; color: #50575e; }
+    .takeaway strong { color: #8a2f0d; }
+    .method { border-color: #c3c4c7; border-radius: 4px; background: #fff; color: #646970; }
+    .method strong { color: #1d2327; }
+    .footer { color: #646970; }
+
+    :root {
+      --bg: #f5f3f1;
+      --orange: #e95420;
+      --gold: #8a5b00;
+      --blue: #77216f;
+      font-family: Ubuntu, "Ubuntu Sans", sans-serif;
+    }
+
+    body, button, select, input { font-family: Ubuntu, "Ubuntu Sans", sans-serif; }
+    body { background: #2c001e; }
+    .main {
+      min-height: 100vh;
+      background:
+        radial-gradient(ellipse at 92% 3%, #e9542070, transparent 31%),
+        radial-gradient(ellipse at 8% 85%, #77216f80, transparent 38%),
+        linear-gradient(135deg, #2c001e 0%, #421239 54%, #260019 100%);
+    }
+    .eyebrow { color: #ff9a76; }
+    h1 { color: #fff; }
+    .subtitle { color: #e2d4df; }
+    .footer { color: #c9b9c5; }
+    .sidebar { background: #2c001e; border-right-color: #4b203e; }
+    .brand-sub { letter-spacing: .04em; }
+    .primary-nav { border-bottom-color: #563447; }
+    .primary-nav .side-label, .side-label { color: #c9b9c5; }
+    .primary-link { color: #f5eef3; }
+    .primary-link:hover { background: #4b203e; color: #fff; }
+    .primary-link[aria-current="page"] { background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
+    .nav-symbol { color: #d3bdce; }
+    .primary-link[aria-current="page"] .nav-symbol { color: #ff9a76; }
+    .layer-option { color: #f0e8ee; }
+    .layer-option:hover { background: #4b203e; color: #fff; }
+    .layer-option[aria-pressed="true"] { border-color: #70445f; background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
+    .layer-icon { color: #ff8a61; }
+    .layer-detail { color: #c5b3c0; }
+    .side-divider { background: #563447; }
+    .field label, .check-row { color: #f0e8ee; }
+    .check-row input, input[type="range"] { accent-color: #e95420; }
+    .action.primary { border-color: #e95420; background: #e95420; }
+    .action.primary:hover { border-color: #c34113; background: #c34113; }
+    .value-orange { color: #c2410c; }
+    .value-blue { color: #77216f; }
+    .bar { background: #e95420; }
+    .takeaway { border-left-color: #e95420; }
+
+    .filter-section {
+      padding: 12px;
+      border: 1px solid #70445f;
+      border-radius: 6px;
+      background: linear-gradient(145deg, #35102c 0%, #4b173c 62%, #61251e 100%);
+    }
+    .filter-section .side-label { margin-bottom: 7px; color: #fff; }
+    .filter-section select { border-color: #74485e; background: #2c001e; color: #f7eff5; }
+    .filter-section .range-meta { color: #e2d4df; }
+    .metric, .info-card, .method {
+      border-color: #70445f;
+      background: linear-gradient(145deg, #35102c 0%, #4b173c 62%, #61251e 100%);
+      box-shadow: 0 2px 8px #17000f30;
+      color: #f5eef3;
+    }
+    .metric-head, .metric-foot, .bar-label, .compare-row, .method { color: #e2d4df; }
+    .metric-value { color: #fff; }
+    .value-orange { color: #ff9a76; }
+    .value-blue { color: #c79bd0; }
+    .value-gold { color: #ffd166; }
+    .map-card { border-color: #70445f; }
+    .map-head {
+      border-bottom-color: #70445f;
+      background: linear-gradient(145deg, #35102c 0%, #4b173c 62%, #61251e 100%);
+    }
+    .map-heading, .card-title { color: #fff; }
+    .map-meta, .card-tag, .bar-value, .compare-number { color: #e2d4df; }
+    .zoom-btn { border-color: #74485e; background: #2c001e; color: #fff; }
+    .zoom-btn:hover { border-color: #e95420; background: #4b173c; }
+    .chart { border-bottom-color: #70445f; }
+    .compare-track { background: #2c001e; }
+    .takeaway {
+      border-left-color: #ff8a61;
+      background: linear-gradient(120deg, #61251e, #4b173c 75%);
+      color: #f5eef3;
+    }
+    .takeaway strong, .method strong { color: #ffb18e; }
+
+    :root[data-theme="light"] {
+      color-scheme: light;
+      --bg: #f5f3f1;
+      --panel: #fff;
+      --panel-2: #f6f7f7;
+      --line: #ded8dc;
+      --muted: #646970;
+      --text: #1d2327;
+      --soft: #50575e;
+      --orange: #e95420;
+      --gold: #8a5b00;
+      --blue: #77216f;
+      --green: #008a20;
+    }
+    :root[data-theme="light"] body { background: var(--bg); color: var(--text); }
+    :root[data-theme="light"] .sidebar {
+      background: #fff;
+      border-right-color: #ded8dc;
+      color: #1d2327;
+      box-shadow: 1px 0 8px #2c001e0a;
+    }
+    :root[data-theme="light"] .brand-title { color: #2c001e; }
+    :root[data-theme="light"] .brand-sub,
+    :root[data-theme="light"] .primary-nav .side-label,
+    :root[data-theme="light"] .side-label { color: #646970; }
+    :root[data-theme="light"] .primary-nav { border-bottom-color: #ded8dc; }
+    :root[data-theme="light"] .primary-link { color: #3c343a; }
+    :root[data-theme="light"] .primary-link:hover { background: #f5edf3; color: #2c001e; }
+    :root[data-theme="light"] .primary-link[aria-current="page"] {
+      background: #f5edf3;
+      color: #2c001e;
+      box-shadow: inset 3px 0 #e95420;
+    }
+    :root[data-theme="light"] .nav-symbol,
+    :root[data-theme="light"] .primary-link[aria-current="page"] .nav-symbol { color: #77216f; }
+    :root[data-theme="light"] .layer-option { color: #3c343a; }
+    :root[data-theme="light"] .layer-option:hover { background: #f5edf3; color: #2c001e; }
+    :root[data-theme="light"] .layer-option[aria-pressed="true"] {
+      border-color: #e4c9dc;
+      background: #f5edf3;
+      color: #2c001e;
+      box-shadow: inset 3px 0 #e95420;
+    }
+    :root[data-theme="light"] .layer-icon { color: #c2410c; }
+    :root[data-theme="light"] .layer-detail,
+    :root[data-theme="light"] .range-meta,
+    :root[data-theme="light"] .legend { color: #646970; }
+    :root[data-theme="light"] .side-divider { background: #ded8dc; }
+    :root[data-theme="light"] .filter-section {
+      border-color: #e4c9dc;
+      background: linear-gradient(145deg, #fff 0%, #fbf5fa 65%, #fff5ef 100%);
+    }
+    :root[data-theme="light"] .filter-section .side-label,
+    :root[data-theme="light"] .field label,
+    :root[data-theme="light"] .check-row { color: #3c343a; }
+    :root[data-theme="light"] .filter-section select {
+      border-color: #c3c4c7;
+      background: #fff;
+      color: #1d2327;
+    }
+    :root[data-theme="light"] .check-row input,
+    :root[data-theme="light"] input[type="range"] { accent-color: #e95420; }
+    :root[data-theme="light"] .side-note {
+      border-color: #ded8dc;
+      background: #f6f2f5;
+      color: #646970;
+    }
+    :root[data-theme="light"] .side-note strong { color: #2c001e; }
+    :root[data-theme="light"] .main {
+      background:
+        radial-gradient(ellipse at 92% 3%, #e9542014, transparent 31%),
+        radial-gradient(ellipse at 8% 85%, #77216f12, transparent 38%),
+        var(--bg);
+    }
+    :root[data-theme="light"] .eyebrow { color: #a63d19; }
+    :root[data-theme="light"] h1 { color: #2c001e; }
+    :root[data-theme="light"] .subtitle,
+    :root[data-theme="light"] .footer { color: #646970; }
+    :root[data-theme="light"] .action {
+      border-color: #c3c4c7;
+      background: #fff;
+      color: #2c3338;
+    }
+    :root[data-theme="light"] .action:hover { border-color: #77216f; background: #f8f2f7; color: #2c001e; }
+    :root[data-theme="light"] .action.primary { border-color: #e95420; background: #e95420; color: #fff; }
+    :root[data-theme="light"] .action.primary:hover { border-color: #c34113; background: #c34113; }
+    :root[data-theme="light"] .metric,
+    :root[data-theme="light"] .info-card,
+    :root[data-theme="light"] .method {
+      border-color: #ded8dc;
+      background: #fff;
+      box-shadow: 0 2px 8px #2c001e0a;
+      color: #1d2327;
+    }
+    :root[data-theme="light"] .metric-head,
+    :root[data-theme="light"] .metric-foot,
+    :root[data-theme="light"] .bar-label,
+    :root[data-theme="light"] .compare-row,
+    :root[data-theme="light"] .method { color: #646970; }
+    :root[data-theme="light"] .metric-value,
+    :root[data-theme="light"] .card-title,
+    :root[data-theme="light"] .compare-number,
+    :root[data-theme="light"] .method strong { color: #1d2327; }
+    :root[data-theme="light"] .value-orange { color: #c2410c; }
+    :root[data-theme="light"] .value-blue { color: #77216f; }
+    :root[data-theme="light"] .value-gold { color: #8a5b00; }
+    :root[data-theme="light"] .map-card { border-color: #ded8dc; background: #fff; }
+    :root[data-theme="light"] .map-head { border-bottom-color: #ded8dc; background: #fff; }
+    :root[data-theme="light"] .map-heading { color: #1d2327; }
+    :root[data-theme="light"] .live-dot { background: #e95420; box-shadow: none; }
+    :root[data-theme="light"] .map-meta,
+    :root[data-theme="light"] .card-tag,
+    :root[data-theme="light"] .bar-value { color: #646970; }
+    :root[data-theme="light"] .zoom-btn { border-color: #c3c4c7; background: #f6f7f7; color: #2c3338; }
+    :root[data-theme="light"] .zoom-btn:hover { border-color: #77216f; background: #f5edf3; }
+    :root[data-theme="light"] .map-stage { background: #e8ece8; }
+    :root[data-theme="light"] .chart { border-bottom-color: #ded8dc; }
+    :root[data-theme="light"] .bar { background: #e95420; }
+    :root[data-theme="light"] .compare-track { background: #e5e1e4; }
+    :root[data-theme="light"] .takeaway {
+      border-left-color: #e95420;
+      background: linear-gradient(120deg, #fff1e9, #f7eff6 75%);
+      color: #50575e;
+    }
+    :root[data-theme="light"] .takeaway strong { color: #8a2f0d; }
+
+    :root[data-theme="dark"] {
+      color-scheme: dark;
+      --bg: #0b1014;
+      --panel: #11191f;
+      --panel-2: #151f26;
+      --line: #27343c;
+      --muted: #91a0a8;
+      --text: #edf2ef;
+      --soft: #c2ccc9;
+      --orange: #ff744f;
+      --gold: #f3bb64;
+      --blue: #66b9e8;
+      --green: #83c9aa;
+    }
+    :root[data-theme="dark"] body { background: #2c001e; color: #edf2ef; }
+    :root[data-theme="dark"] .main {
+      background:
+        radial-gradient(ellipse at 92% 3%, #e9542070, transparent 31%),
+        radial-gradient(ellipse at 8% 85%, #77216f80, transparent 38%),
+        linear-gradient(135deg, #2c001e 0%, #421239 54%, #260019 100%);
+    }
+    :root[data-theme="dark"] .eyebrow { color: #ff9a76; }
+    :root[data-theme="dark"] h1 { color: #fff; }
+    :root[data-theme="dark"] .subtitle { color: #e2d4df; }
+    :root[data-theme="dark"] .footer { color: #c9b9c5; }
+    :root[data-theme="dark"] .sidebar { background: #2c001e; border-right-color: #4b203e; color: #f5eef3; }
+    :root[data-theme="dark"] .brand-title { color: #f0f0f1; }
+    :root[data-theme="dark"] .brand-sub,
+    :root[data-theme="dark"] .primary-nav .side-label,
+    :root[data-theme="dark"] .side-label { color: #c9b9c5; }
+    :root[data-theme="dark"] .primary-nav { border-bottom-color: #563447; }
+    :root[data-theme="dark"] .primary-link { color: #f5eef3; }
+    :root[data-theme="dark"] .primary-link:hover { background: #4b203e; color: #fff; }
+    :root[data-theme="dark"] .primary-link[aria-current="page"] { background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
+    :root[data-theme="dark"] .nav-symbol { color: #d3bdce; }
+    :root[data-theme="dark"] .primary-link[aria-current="page"] .nav-symbol { color: #ff9a76; }
+    :root[data-theme="dark"] .layer-option { color: #f0e8ee; }
+    :root[data-theme="dark"] .layer-option:hover { background: #4b203e; color: #fff; }
+    :root[data-theme="dark"] .layer-option[aria-pressed="true"] { border-color: #70445f; background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
+    :root[data-theme="dark"] .layer-icon { color: #ff8a61; }
+    :root[data-theme="dark"] .layer-detail,
+    :root[data-theme="dark"] .range-meta,
+    :root[data-theme="dark"] .legend { color: #c5b3c0; }
+    :root[data-theme="dark"] .side-divider { background: #563447; }
+    :root[data-theme="dark"] .field label,
+    :root[data-theme="dark"] .check-row { color: #f0e8ee; }
+    :root[data-theme="dark"] .filter-section select { border-color: #74485e; background: #2c001e; color: #f7eff5; }
+    :root[data-theme="dark"] .side-note { border-color: #563447; background: #35102c; color: #c9b9c5; }
+    :root[data-theme="dark"] .side-note strong { color: #fff; }
+    :root[data-theme="dark"] .action { border-color: #74485e; background: #35102c; color: #f5eef3; }
+    :root[data-theme="dark"] .action:hover { border-color: #e95420; background: #4b173c; }
+    :root[data-theme="dark"] .action.primary { border-color: #e95420; background: #e95420; color: #fff; }
+    :root[data-theme="dark"] .metric,
+    :root[data-theme="dark"] .info-card,
+    :root[data-theme="dark"] .method {
+      border-color: #70445f;
+      background: linear-gradient(145deg, #35102c 0%, #4b173c 62%, #61251e 100%);
+      box-shadow: 0 2px 8px #17000f30;
+      color: #f5eef3;
+    }
+    :root[data-theme="dark"] .metric-head,
+    :root[data-theme="dark"] .metric-foot,
+    :root[data-theme="dark"] .bar-label,
+    :root[data-theme="dark"] .compare-row,
+    :root[data-theme="dark"] .method { color: #e2d4df; }
+    :root[data-theme="dark"] .metric-value,
+    :root[data-theme="dark"] .card-title { color: #fff; }
+    :root[data-theme="dark"] .value-orange { color: #ff9a76; }
+    :root[data-theme="dark"] .value-blue { color: #c79bd0; }
+    :root[data-theme="dark"] .value-gold { color: #ffd166; }
+    :root[data-theme="dark"] .map-card { border-color: #70445f; background: #11191e; }
+    :root[data-theme="dark"] .map-head { border-bottom-color: #70445f; background: linear-gradient(145deg, #35102c 0%, #4b173c 62%, #61251e 100%); }
+    :root[data-theme="dark"] .map-heading { color: #fff; }
+    :root[data-theme="dark"] .live-dot { background: #e95420; }
+    :root[data-theme="dark"] .map-meta,
+    :root[data-theme="dark"] .card-tag,
+    :root[data-theme="dark"] .bar-value,
+    :root[data-theme="dark"] .compare-number { color: #e2d4df; }
+    :root[data-theme="dark"] .zoom-btn { border-color: #74485e; background: #2c001e; color: #fff; }
+    :root[data-theme="dark"] .zoom-btn:hover { border-color: #e95420; background: #4b173c; }
+    :root[data-theme="dark"] .map-stage { background: #10191e; }
+    :root[data-theme="dark"] .chart { border-bottom-color: #70445f; }
+    :root[data-theme="dark"] .bar { background: #e95420; }
+    :root[data-theme="dark"] .compare-track { background: #2c001e; }
+    :root[data-theme="dark"] .takeaway { border-left-color: #ff8a61; background: linear-gradient(120deg, #61251e, #4b173c 75%); color: #f5eef3; }
+    :root[data-theme="dark"] .takeaway strong,
+    :root[data-theme="dark"] .method strong { color: #ffb18e; }
+
+    .sidebar {
+      align-self: start;
+      height: 100vh;
+      height: 100dvh;
+      min-height: 0;
+      overscroll-behavior: contain;
+      scrollbar-color: #8b607f transparent;
+      scrollbar-width: thin;
+    }
+    .sidebar::-webkit-scrollbar { width: 8px; }
+    .sidebar::-webkit-scrollbar-track { background: transparent; }
+    .sidebar::-webkit-scrollbar-thumb { border: 2px solid transparent; border-radius: 8px; background: #8b607f; background-clip: padding-box; }
+    .theme-control {
+      display: grid;
+      grid-template-columns: auto 38px auto;
+      align-items: center;
+      column-gap: 7px;
+      row-gap: 3px;
+      padding: 5px 9px;
+      border: 1px solid #70445f;
+      border-radius: 6px;
+      background: #35102c;
+    }
+    .theme-choice { color: #e2d4df; font-size: 10px; font-weight: 600; }
+    .theme-choice:nth-of-type(2) { text-align: right; }
+    .theme-mode { grid-column: 1 / -1; color: #c5b3c0; font-size: 8px; line-height: 10px; text-align: center; }
+    .theme-switch {
+      width: 38px;
+      height: 22px;
+      padding: 2px;
+      border: 0;
+      border-radius: 20px;
+      background: transparent;
+      cursor: pointer;
+    }
+    .theme-switch-track {
+      width: 34px;
+      height: 18px;
+      display: flex;
+      align-items: center;
+      padding: 2px;
+      border-radius: 12px;
+      background: #8b607f;
+      transition: background .18s ease;
+    }
+    .theme-switch-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 1px 3px #0005;
+      transition: transform .18s ease;
+    }
+    .theme-switch[aria-checked="true"] .theme-switch-track { background: #e95420; }
+    .theme-switch[aria-checked="true"] .theme-switch-thumb { transform: translateX(16px); }
+    .theme-switch:focus-visible { outline: 2px solid #efa06c; outline-offset: 3px; }
+    :root[data-theme="light"] .theme-control { border-color: #e4c9dc; background: #fbf5fa; }
+    :root[data-theme="light"] .theme-choice { color: #5b4a56; }
+    :root[data-theme="light"] .theme-choice:first-of-type { color: #a63d19; font-weight: 700; }
+    :root[data-theme="light"] .theme-switch-track { background: #b7a9b2; }
+    :root[data-theme="light"] .theme-switch[aria-checked="true"] .theme-switch-track { background: #e95420; }
+    :root[data-theme="light"] .theme-mode { color: #646970; }
+    :root[data-theme="dark"] .theme-choice:nth-of-type(2) { color: #ff9a76; font-weight: 700; }
+    :root[data-theme="light"] .sidebar { scrollbar-color: #b7a9b2 transparent; }
+    :root[data-theme="light"] .sidebar::-webkit-scrollbar-thumb { background-color: #b7a9b2; }
+
+    /* ============ UYUMLAŞTIRMA EKLEMELERİ ============ */
+    .dot-ring { background: transparent !important; border: 2px solid #FFB020; width: 9px; height: 9px; }
+    .sq { display: inline-block; width: 10px; height: 10px; border-radius: 2px; opacity: .85; }
+    .check-gap { margin-top: 8px; }
+    .ratio-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+    .ratio-row .metric-value { margin-top: 2px; }
+    .ratio-arrow { color: #A9B8C8; font-size: 22px; }
+    .ratio-foot { margin-top: 10px; color: #C3D0DD; }
+    .below-grid + .below-grid { margin-top: 13px; }
+    #cellChart .compare-row, #fireChart .compare-row { grid-template-columns: 74px 1fr 60px; }
+
+    @media (max-width: 900px) {
+      :root { --sidebar: 250px; }
+      .main { padding-right: 18px; padding-left: 18px; }
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .below-grid { grid-template-columns: 1fr; }
+      .topbar { flex-direction: column; }
+      .top-actions { justify-content: flex-start; }
+    }
+    @media (max-width: 640px) {
+      .app { display: block; }
+      .sidebar { position: static; width: 100%; height: auto; padding: 15px 16px; gap: 14px; border-right: 0; border-bottom: 1px solid var(--line); }
+      .sidebar .side-note { display: none; }
+      .primary-nav { padding-bottom: 10px; }
+      .primary-nav .side-label { margin-left: 2px; }
+      .primary-nav { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px; }
+      .primary-nav .side-label { grid-column: 1 / -1; }
+      .primary-link { padding: 7px 5px; justify-content: center; gap: 5px; font-size: 10px; }
+      .nav-symbol { width: auto; }
+      .layer-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .layer-option { padding: 8px; gap: 7px; }
+      .layer-name { font-size: 10px; }
+      .layer-detail { font-size: 9px; }
+      .side-divider { display: none; }
+      .filters { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 12px; }
+      .filter-section .side-label { margin-bottom: 0; }
+      .main { padding: 19px 13px 22px; }
+      .map-stage { height: 390px; }
+      .map-head { align-items: flex-start; }
+      .map-meta { max-width: 210px; line-height: 1.5; }
+      .footer { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar" aria-label="Harita ve filtre seçenekleri">
+      <div class="brand">
+        <div><div class="brand-title">AeroFire</div><div class="brand-sub">Uydu gözlem paneli</div></div>
+      </div>
+
+      <nav class="primary-nav" aria-label="Ana menü">
+        <h2 class="side-label">Panel</h2>
+        <a class="primary-link" href="#overview" aria-current="page"><span class="nav-symbol" aria-hidden="true">▦</span>Genel bakış</a>
+        <a class="primary-link" href="#map"><span class="nav-symbol" aria-hidden="true">⌖</span>Yangın haritası</a>
+        <a class="primary-link" href="#analysis"><span class="nav-symbol" aria-hidden="true">▥</span>Zaman çizelgesi</a>
+        <a class="primary-link" href="#sources"><span class="nav-symbol" aria-hidden="true">ⓘ</span>Veri ve yöntem</a>
+      </nav>
+
+      <section>
+        <h2 class="side-label">Harita görünümü</h2>
+        <div class="layer-list" role="group" aria-label="Harita katmanını seçin">
+          <button class="layer-option" type="button" data-layer="points" aria-pressed="true">
+            <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><circle cx="6" cy="7" r="2" fill="currentColor"/><circle cx="13.5" cy="5" r="1.5" fill="currentColor"/><circle cx="11" cy="13" r="2.5" fill="currentColor"/><circle cx="16" cy="12" r="1" fill="currentColor"/></svg></span>
+            <span><span class="layer-name">Algılama noktaları</span><span class="layer-detail">Her uydu gözlemi</span></span>
+          </button>
+          <button class="layer-option" type="button" data-layer="harmonized" aria-pressed="false">
+            <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" fill="#ff855d"/><rect x="11" y="3" width="6" height="6" fill="#FFB020"/><rect x="3" y="11" width="6" height="6" fill="#FFB020"/><rect x="11" y="11" width="6" height="6" fill="#69b9e8"/></svg></span>
+            <span><span class="layer-name">1 km uyumlaştırılmış ızgara</span><span class="layer-detail">Her karede hangi sensör</span></span>
+          </button>
+          <button class="layer-option" type="button" data-layer="density" aria-pressed="false">
+            <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="5" stroke="currentColor"/><circle cx="10" cy="10" r="8" stroke="currentColor" opacity=".55"/></svg></span>
+            <span><span class="layer-name">Yoğunluk haritası</span><span class="layer-detail">Algılama kümeleri</span></span>
+          </button>
+          <button class="layer-option" type="button" data-layer="grid" aria-pressed="false">
+            <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M3 3h6v6H3zM11 3h6v6h-6zM3 11h6v6H3zM11 11h6v6h-6z" stroke="currentColor"/></svg></span>
+            <span><span class="layer-name">0,1° grid hücreleri</span><span class="layer-detail">Hücre başına algılama</span></span>
+          </button>
+          <button class="layer-option" type="button" data-layer="compare" aria-pressed="false">
+            <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><circle cx="7" cy="10" r="4" stroke="#f08a62" stroke-width="2"/><circle cx="13" cy="10" r="4" stroke="#72bfe9" stroke-width="2"/></svg></span>
+            <span><span class="layer-name">Sensör karşılaştırma</span><span class="layer-detail">MODIS ve VIIRS</span></span>
+          </button>
+        </div>
+      </section>
+
+      <div class="side-divider"></div>
+      <section class="filter-section">
+        <h2 class="side-label">Gözlem filtreleri</h2>
+        <div class="filters">
+          <div class="field">
+            <label for="dateFilter">Gözlem günü</label>
+            <select id="dateFilter">
+              <option value="all">Tüm tarihler</option>
+              <option value="2020-10-08">8 Ekim 2020</option>
+              <option value="2020-10-09">9 Ekim 2020</option>
+              <option value="2020-10-10">10 Ekim 2020</option>
+              <option value="2020-10-11">11 Ekim 2020</option>
+              <option value="2020-10-12">12 Ekim 2020</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="sensorFilter">Uydu sensörü</label>
+            <select id="sensorFilter">
+              <option value="all">Tüm sensörler</option>
+              <option value="VIIRS">VIIRS</option>
+              <option value="MODIS">MODIS</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="confidenceFilter">Güven düzeyi</label>
+            <select id="confidenceFilter">
+              <option value="all">Tüm seviyeler</option>
+              <option value="nominal">Nominal ve üzeri</option>
+              <option value="high">Yüksek</option>
+            </select>
+            <div class="range-meta">MODIS: ≥50 / ≥80 · VIIRS: nominal+ / yüksek</div>
+          </div>
+          <div class="field">
+            <label class="check-row"><input id="boundaryToggle" type="checkbox" checked> Hatay il sınırını göster</label>
+            <label class="check-row check-gap"><input id="staticToggle" type="checkbox"> Yangın olmayan noktaları göster (sabit ısı + deniz)</label>
+          </div>
+        </div>
+        <div class="legend" aria-label="Sensör renkleri">
+          <span class="legend-item"><i class="dot" style="background:#ff855d"></i>MODIS</span>
+          <span class="legend-item"><i class="dot" style="background:#69b9e8"></i>VIIRS</span>
+          <span class="legend-item"><i class="dot dot-ring"></i>İkisinde</span>
+          <span class="legend-item"><i class="dot" style="background:#8A8F98"></i>Yangın değil</span>
+        </div>
+      </section>
+      <div class="side-note"><strong>Veri notu</strong><br>Her nokta bir uydu algılamasını gösterir; tekil yangın veya yangın alanı sayısı değildir. Uydu geçişleri aynı olayı birden fazla kez algılayabilir.</div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar" id="overview">
+        <div>
+          <div class="eyebrow">NASA FIRMS · 8–12 Ekim 2020</div>
+          <h1>Hatay yangın gözlemleri</h1>
+          <p class="subtitle">MODIS ve VIIRS uydularının Hatay’daki aktif yangın algılamaları</p>
+        </div>
+        <div class="top-actions">
+          <div class="theme-control" role="group" aria-label="Görünüm teması">
+            <span class="theme-choice">Açık</span>
+            <button class="theme-switch" id="themeToggle" type="button" role="switch" aria-label="Özel temayı etkinleştir" aria-checked="false" aria-describedby="themeMode">
+              <span class="theme-switch-track" aria-hidden="true"><span class="theme-switch-thumb"></span></span>
+            </button>
+            <span class="theme-choice">Özel tema</span>
+            <span class="theme-mode" id="themeMode">Bilgisayar temasını izliyor</span>
+          </div>
+          <button class="action" id="resetButton" type="button">Filtreleri sıfırla</button>
+          <button class="action primary" id="downloadButton" type="button">Görünen veriyi indir ↓</button>
+        </div>
+      </header>
+
+      <section class="metrics" aria-label="Filtrelenmiş veri özeti">
+        <article class="metric"><div class="metric-head">Toplam algılama <span class="metric-symbol">◎</span></div><div class="metric-value" id="totalMetric">—</div><div class="metric-foot" id="dateMetric">Seçili zaman aralığında</div></article>
+        <article class="metric"><div class="metric-head">VIIRS algılaması <span class="metric-symbol value-blue">●</span></div><div class="metric-value value-blue" id="viirsMetric">—</div><div class="metric-foot" id="viirsFoot">Toplamın payı</div></article>
+        <article class="metric"><div class="metric-head">MODIS algılaması <span class="metric-symbol value-orange">●</span></div><div class="metric-value value-orange" id="modisMetric">—</div><div class="metric-foot" id="modisFoot">Toplamın payı</div></article>
+        <article class="metric"><div class="metric-head">En yüksek FRP <span class="metric-symbol value-gold">↗</span></div><div class="metric-value value-gold" id="frpMetric">—</div><div class="metric-foot">Yangın radyatif gücü · MW</div></article>
+      </section>
+
+      <section class="map-card" id="map" aria-label="Etkileşimli Hatay haritası">
+        <div class="map-head">
+          <div>
+            <div class="map-heading"><span class="live-dot"></span><span id="mapTitle">Uydu algılama noktaları</span></div>
+            <div class="map-meta" id="mapMeta">Noktaya tıklayarak gözlem ayrıntılarını inceleyin</div>
+          </div>
+          <div class="map-tools" aria-label="Harita yakınlaştırma">
+            <button class="zoom-btn" id="zoomOut" type="button" aria-label="Uzaklaştır">−</button>
+            <button class="zoom-btn" id="zoomIn" type="button" aria-label="Yakınlaştır">+</button>
+            <button class="zoom-btn" id="zoomReset" type="button" aria-label="Haritayı ortala">⌂</button>
+          </div>
+        </div>
+        <div class="map-stage" id="mapStage">
+          <div id="leafletMap" role="application" aria-label="Hatay il sınırı ve yangın algılamaları haritası"></div>
+          <div class="map-error" id="mapError" hidden>Harita yüklenemedi. Harita altlığı için internet bağlantınızı kontrol edip sayfayı yenileyin.</div>
+          <div class="empty-state" id="emptyState" hidden>Bu filtrelerle eşleşen algılama yok.<br>Filtreleri gevşetip yeniden deneyin.</div>
+          <div class="map-legend" id="mapLegend"><span class="legend-item"><i class="dot" style="background:#ff855d"></i>MODIS</span><span class="legend-item"><i class="dot" style="background:#69b9e8"></i>VIIRS</span></div>
+        </div>
+      </section>
+
+      <section class="below-grid" id="analysis" aria-label="Veri grafikleri ve bulgular">
+        <article class="info-card">
+          <div class="card-title">Günlük algılama sayısı <span class="card-tag">filtrelere göre</span></div>
+          <div class="chart" id="dailyChart" role="img" aria-label="Günlük algılama grafiği"></div>
+        </article>
+        <article class="info-card">
+          <div class="card-title">Sensörlerin kapsadığı gözlemler <span class="card-tag">MODIS / VIIRS</span></div>
+          <div class="compare" id="sensorChart"></div>
+          <div class="takeaway" id="takeaway">Veri özeti yükleniyor…</div>
+        </article>
+      </section>
+
+      <section class="below-grid" id="harmonization" aria-label="Uyumlaştırma sonuçları">
+        <article class="info-card">
+          <div class="card-title">Uyumlaştırma <span class="card-tag" id="ratioTag">—</span></div>
+          <div class="ratio-row">
+            <div><div class="metric-head">Ham oran</div><div class="metric-value" id="rawRatio">—</div></div>
+            <div class="ratio-arrow" aria-hidden="true">→</div>
+            <div><div class="metric-head">Izgara oranı</div><div class="metric-value value-gold" id="gridRatio">—</div></div>
+          </div>
+          <div class="compare" id="cellChart"></div>
+          <div class="metric-foot ratio-foot">VIIRS / MODIS. Ham = nokta sayısı, ızgara = günlük 1 km kare. Yalnızca gün filtresi uygulanır.</div>
+        </article>
+        <article class="info-card">
+          <div class="card-title"><span id="fireTitle">En büyük yangın grubu</span> <span class="card-tag" id="fireTag">—</span></div>
+          <div class="compare" id="fireChart"></div>
+          <div class="takeaway" id="fireTakeaway">—</div>
+        </article>
+      </section>
+
+      <section class="method" id="sources">
+        <strong>Nasıl okunmalı?</strong> FIRMS aktif yangın / termal anomali algılamalarını kaydeder. MODIS ile VIIRS’in uzamsal çözünürlükleri ve geçiş zamanları farklı olduğundan algılama sayıları doğrudan yangın sayısı olarak yorumlanmamalıdır. FRP (MW), algılanan yangının radyatif enerji çıkışına ilişkin bir ölçümdür; hasar veya yanmış alan ölçüsü değildir. <span id="methodExtra"></span>
+      </section>
+      <footer class="footer"><span>Kaynak: NASA FIRMS arşiv verisi · MODIS &amp; VIIRS · Hatay, Türkiye</span><span>Harita altlığı internet bağlantısı gerektirir · Veri dönemi: 08–12.10.2020</span></footer>
+    </main>
+  </div>
+
+  <script id="boundary-data" type="application/json">[[36.1809,35.9017],[36.1891,35.8844],[36.1831,35.8356],[36.1691,35.8154],[36.1548,35.8202],[36.1417,35.8465],[36.1341,35.8553],[36.1164,35.8655],[36.0499,35.8791],[36.0187,35.8811],[36.0163,35.8837],[36.0149,35.8899],[36.0217,35.9087],[36.0229,35.9245],[36.0163,35.9341],[36.0085,35.9403],[36.0015,35.9409],[35.9937,35.9393],[35.9509,35.9218],[35.9358,35.9187],[35.9185,35.9323],[35.9188,35.9482],[35.9212,35.9504],[35.9232,35.9565],[35.9282,35.9568],[35.9296,35.9582],[35.929,35.9618],[35.9368,35.9682],[35.9415,35.9701],[35.9551,35.9829],[35.9571,35.9824],[35.9574,35.9868],[35.959,35.9871],[35.9582,35.9893],[35.9607,35.9938],[35.9701,36.0004],[35.9735,36.001],[35.9765,36.0046],[35.979,36.0046],[35.9779,36.0065],[35.9799,36.0071],[35.9787,36.0085],[35.9813,36.0104],[35.979,36.019],[35.964,36.044],[35.9543,36.0624],[35.9504,36.0732],[35.9451,36.0801],[35.9338,36.1024],[35.9193,36.1243],[35.9132,36.1243],[35.9113,36.1265],[35.916,36.1254],[35.9132,36.1265],[35.9143,36.1296],[35.9118,36.1318],[35.9104,36.1385],[35.9038,36.1435],[35.9049,36.1457],[35.8968,36.1579],[35.8854,36.1701],[35.8787,36.1724],[35.8771,36.1782],[35.8735,36.1796],[35.8718,36.1846],[35.8657,36.1907],[35.8599,36.2004],[35.8576,36.2012],[35.8535,36.2085],[35.8532,36.2118],[35.8407,36.2268],[35.8382,36.2326],[35.8235,36.2454],[35.819,36.2535],[35.8129,36.2593],[35.8104,36.2599],[35.7993,36.2743],[35.7901,36.2804],[35.7882,36.2874],[35.7829,36.2915],[35.7821,36.2979],[35.7804,36.2988],[35.7843,36.3049],[35.7835,36.311],[35.7796,36.3176],[35.781,36.3224],[35.7854,36.3237],[35.7887,36.3304],[35.7951,36.3349],[35.7993,36.3351],[35.8024,36.3385],[35.8074,36.3396],[35.8082,36.3421],[35.8132,36.3457],[35.816,36.3521],[35.816,36.3604],[35.8174,36.3593],[35.821,36.3601],[35.8312,36.366],[35.8382,36.3657],[35.8535,36.369],[35.8568,36.3724],[35.859,36.3782],[35.8604,36.3957],[35.8696,36.4012],[35.8732,36.4057],[35.8743,36.4101],[35.8801,36.4162],[35.8821,36.4165],[35.8857,36.4137],[35.8943,36.414],[35.896,36.4154],[35.9004,36.4249],[35.9015,36.4376],[35.9068,36.4401],[35.9085,36.4443],[35.9154,36.4437],[35.9179,36.4468],[35.9257,36.4501],[35.9321,36.4604],[35.9418,36.4596],[35.9546,36.466],[35.9607,36.466],[35.9712,36.4712],[35.9826,36.4743],[35.9929,36.4851],[35.9982,36.4949],[36.0062,36.4976],[36.0118,36.5018],[36.0218,36.5149],[36.0296,36.519],[36.031,36.5229],[36.034,36.5257],[36.0368,36.5337],[36.051,36.5376],[36.0971,36.5585],[36.1043,36.5646],[36.1101,36.5662],[36.1218,36.5721],[36.1218,36.5735],[36.1374,36.5804],[36.1396,36.5851],[36.1488,36.5907],[36.1532,36.5907],[36.1621,36.5951],[36.1732,36.5915],[36.1757,36.5921],[36.1774,36.5951],[36.1768,36.5915],[36.1854,36.5924],[36.1871,36.5937],[36.1862,36.5954],[36.1888,36.5951],[36.1893,36.5932],[36.1907,36.596],[36.1929,36.5935],[36.1946,36.5965],[36.1876,36.5996],[36.1946,36.599],[36.1963,36.6029],[36.1951,36.6051],[36.1968,36.6049],[36.1968,36.6118],[36.1982,36.6124],[36.1971,36.6135],[36.1974,36.6218],[36.1963,36.6221],[36.1976,36.6301],[36.2057,36.6351],[36.2071,36.639],[36.211,36.6407],[36.2115,36.6512],[36.2157,36.6604],[36.2121,36.6651],[36.2068,36.6632],[36.204,36.6637],[36.2124,36.6668],[36.2107,36.6707],[36.2124,36.6724],[36.2062,36.684],[36.2035,36.6835],[36.2043,36.6876],[36.2026,36.6876],[36.1926,36.7051],[36.1954,36.7085],[36.1965,36.7157],[36.1954,36.7207],[36.1926,36.7221],[36.1979,36.7204],[36.2029,36.7212],[36.2026,36.7226],[36.2007,36.7224],[36.2021,36.727],[36.2001,36.7293],[36.1976,36.7282],[36.196,36.7293],[36.1974,36.7324],[36.1929,36.7293],[36.1871,36.729],[36.1957,36.7326],[36.1921,36.7385],[36.1904,36.7465],[36.1918,36.7532],[36.1974,36.7585],[36.1976,36.7615],[36.2029,36.7615],[36.2062,36.7663],[36.206,36.7751],[36.2043,36.7793],[36.206,36.781],[36.2057,36.7835],[36.199,36.7935],[36.1807,36.8132],[36.1765,36.8204],[36.1715,36.8187],[36.1696,36.8193],[36.1738,36.8204],[36.174,36.8229],[36.1674,36.829],[36.1626,36.8385],[36.1465,36.8571],[36.141,36.8604],[36.1318,36.854],[36.1315,36.8524],[36.1293,36.8535],[36.1407,36.8621],[36.124,36.876],[36.1237,36.8796],[36.1093,36.886],[36.0854,36.9001],[36.086,36.9013],[36.0882,36.9001],[36.089,36.9021],[36.0849,36.9029],[36.0829,36.9007],[36.0851,36.9054],[36.0826,36.9049],[36.0785,36.9068],[36.079,36.9049],[36.0826,36.9032],[36.0807,36.9026],[36.0699,36.9093],[36.0588,36.9137],[36.0576,36.916],[36.0429,36.9193],[36.0376,36.9218],[36.0365,36.924],[36.0315,36.9243],[36.0276,36.9274],[36.0185,36.9285],[36.0171,36.9301],[36.0049,36.9301],[36.0015,36.926],[35.9899,36.9204],[35.9893,36.9182],[35.9938,36.9113],[35.9926,36.9074],[35.9912,36.9068],[35.9921,36.9118],[35.9882,36.9185],[35.9849,36.9188],[35.9826,36.9157],[35.9854,36.9093],[35.984,36.9057],[35.9829,36.9071],[35.9837,36.9101],[35.9801,36.914],[35.9751,36.9082],[35.964,36.904],[35.9588,36.894],[35.954,36.8907],[35.9449,36.8899],[35.9376,36.8865],[35.9371,36.8835],[35.9404,36.8824],[35.9388,36.879],[35.9449,36.8743],[35.9457,36.8643],[35.9437,36.8679],[35.9435,36.8743],[35.936,36.8807],[35.934,36.8799],[35.9188,36.889],[35.9136,36.8955],[35.9124,36.9008],[35.9143,36.9085],[35.947,36.9569],[35.9786,36.9828],[35.9956,36.9944],[36.0118,37.0024],[36.0416,37.0256],[36.0881,37.0227],[36.1645,37.0223],[36.1795,37.02],[36.2046,37.0124],[36.2547,37.0087],[36.2899,36.9944],[36.2983,36.9866],[36.3117,36.9685],[36.3472,36.9553],[36.3716,36.9525],[36.4426,36.9533],[36.4551,36.941],[36.4856,36.9248],[36.5188,36.9009],[36.5454,36.8893],[36.5815,36.8643],[36.6024,36.8556],[36.6261,36.841],[36.6409,36.8371],[36.6632,36.8388],[36.6685,36.8368],[36.6786,36.8185],[36.6782,36.8112],[36.6703,36.7998],[36.6328,36.7663],[36.6271,36.7577],[36.624,36.7471],[36.6252,36.7425],[36.6351,36.728],[36.6387,36.7116],[36.6369,36.7051],[36.6278,36.6953],[36.6188,36.68],[36.6064,36.6715],[36.5919,36.6501],[36.588,36.636],[36.5879,36.6305],[36.6006,36.6005],[36.6029,36.591],[36.6042,36.5791],[36.5999,36.562],[36.5961,36.5557],[36.5913,36.5375],[36.5833,36.5227],[36.5734,36.5121],[36.553,36.5011],[36.5529,36.497],[36.557,36.4918],[36.555,36.4858],[36.5678,36.4677],[36.5685,36.445],[36.5735,36.4423],[36.5756,36.4386],[36.5769,36.4248],[36.585,36.4117],[36.5867,36.4019],[36.5891,36.3978],[36.5932,36.3942],[36.5993,36.3923],[36.6067,36.3913],[36.6157,36.3927],[36.6226,36.3912],[36.6235,36.388],[36.6203,36.3749],[36.6278,36.3597],[36.6277,36.3542],[36.612,36.3407],[36.6077,36.3329],[36.6078,36.3299],[36.6116,36.3279],[36.6215,36.3288],[36.6394,36.3356],[36.6502,36.3361],[36.6593,36.334],[36.6662,36.3302],[36.6692,36.3262],[36.6689,36.3094],[36.6711,36.3024],[36.6948,36.2969],[36.7003,36.2922],[36.6991,36.2871],[36.6923,36.2764],[36.6928,36.2716],[36.6958,36.266],[36.706,36.2552],[36.7048,36.2503],[36.7007,36.2443],[36.6842,36.2373],[36.6749,36.2293],[36.6406,36.2292],[36.6274,36.2177],[36.6184,36.2166],[36.6093,36.2175],[36.5839,36.2321],[36.5782,36.2324],[36.5574,36.2281],[36.5426,36.2381],[36.5228,36.2381],[36.5095,36.23],[36.4954,36.2345],[36.4924,36.2328],[36.4892,36.2187],[36.4817,36.2055],[36.4773,36.2029],[36.4711,36.2018],[36.4575,36.2084],[36.4353,36.2113],[36.4267,36.2145],[36.4128,36.2231],[36.4034,36.2264],[36.3975,36.2232],[36.3976,36.2127],[36.4031,36.1996],[36.4006,36.1915],[36.3987,36.1898],[36.3888,36.1885],[36.3817,36.1807],[36.3767,36.1694],[36.3883,36.1515],[36.392,36.1426],[36.3812,36.1188],[36.3852,36.1078],[36.386,36.0994],[36.3887,36.0948],[36.3942,36.0906],[36.3978,36.0838],[36.3887,36.0682],[36.3946,36.0525],[36.3951,36.046],[36.3925,36.0398],[36.3834,36.0314],[36.3808,36.026],[36.3823,36.0099],[36.3786,36.001],[36.3684,35.9948],[36.3569,35.992],[36.3442,35.9924],[36.3172,36.0041],[36.3028,35.9964],[36.2979,35.9917],[36.2946,35.9802],[36.3061,35.9607],[36.3025,35.9574],[36.2897,35.9539],[36.2789,35.9548],[36.2634,35.9617],[36.2546,35.9638],[36.2444,35.9635],[36.2288,35.9604],[36.2127,35.9515],[36.1992,35.9356],[36.1877,35.9185],[36.1809,35.9017],[36.1865,36.7238],[36.1888,36.7226],[36.186,36.7224],[36.184,36.7243],[36.1865,36.7238]]</script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    (async () => {
+      "use strict";
+
+      // ============ 1) VERİ ============
+      // Veri artık data/points.json dosyasından gelir (harmonize.py çıktısı).
+      // Dosya yüklenemezse sayfada hata yazısı çıkar. Sayfa file:// ile değil
+      // Live Server ya da GitHub Pages ile açılmalıdır.
+      async function loadJSON(url) {
+        const res = await fetch(url, { cache: "no-store" });
+        if (!res.ok) throw new Error(url + " -> HTTP " + res.status);
+        return res.json();
+      }
+      let DATA;
+      try {
+        DATA = await loadJSON("data/points.json");
+      } catch (err) {
+        console.error(err);
+        document.body.insertAdjacentHTML("afterbegin",
+          '<div style="position:fixed;z-index:99999;top:0;left:0;right:0;padding:12px 16px;background:#b3261e;color:#fff;font:14px sans-serif">' +
+          'Veri yüklenemedi (data/points.json). Sayfayı Live Server ya da GitHub Pages ile açın. Ayrıntı: ' + String(err.message) + '</div>');
+        return;
+      }
+      // Sınır: önce data/hatay_boundary.geojson, yoksa sayfadaki yedek sınır
+      let boundaryGeo = null;
+      try { boundaryGeo = await loadJSON("data/hatay_boundary.geojson"); } catch (e) { boundaryGeo = null; }
+      const boundary = JSON.parse(document.getElementById("boundary-data").textContent);
+
+      const sensorColors = { MODIS: "#ff855d", VIIRS: "#69b9e8" };
+      const COLORS = { MODIS: sensorColors.MODIS, VIIRS: sensorColors.VIIRS, matched: "#FFB020", static: "#8A8F98" };
+      const CELL_LAT = 0.009;
+      const CELL_LON = 0.011;
+      const MATCH_KM = 1.5;
+      const FEATURED_DATE = "2020-10-09";
+
+      const layerNames = {
+        points:     ["Uydu algılama noktaları", "Noktaya tıklayarak gözlem ayrıntılarını inceleyin"],
+        harmonized: ["1 km uyumlaştırılmış ızgara", "Günlük 1 km kareler · turuncu: sadece MODIS, mavi: sadece VIIRS, sarı: ikisi · yalnızca gün filtresi"],
+        density:    ["Algılama yoğunluğu", "Renk yoğunluğu, 0,1° hücrelerdeki gözlem sayısını gösterir"],
+        grid:       ["0,1° grid hücreleri", "Bir hücreyi seçerek MODIS ve VIIRS sayılarını görün"],
+        compare:    ["MODIS ve VIIRS karşılaştırması", "Her iki sensörün algılamaları aynı haritada gösterilir"]
+      };
+
+      // ============ 2) HARMONİZASYON ============
+      function haversineKm(lat1, lon1, lat2, lon2) {
+        const R = 6371.0;
+        const p1 = lat1 * Math.PI / 180, p2 = lat2 * Math.PI / 180;
+        const dp = (lat2 - lat1) * Math.PI / 180;
+        const dl = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+        return 2 * R * Math.asin(Math.sqrt(a));
+      }
+
+      function normalizeConfidence(sensor, raw) {
+        if (sensor === "VIIRS") {
+          const c = String(raw).toLowerCase();
+          return c === "l" ? "low" : c === "n" ? "nominal" : c === "h" ? "high" : "unknown";
+        }
+        const v = parseFloat(raw);
+        if (isNaN(v)) return "unknown";
+        return v < 30 ? "low" : v < 80 ? "nominal" : "high";
+      }
+
+      function categorize(type) {
+        const t = String(type ?? "0");
+        return t === "0" ? "vegetation" : t === "1" ? "volcano" : t === "2" ? "static" : t === "3" ? "offshore" : "unknown";
+      }
+
+      // Uyumlaştırma artık harmonize.py'de yapılıyor; burada sadece JSON okunur.
+      const TYPE_CODE = { vegetation: 0, volcano: 1, static: 2, offshore: 3 };
+      function fromJSON(d) {
+        const points = d.points.map((p, i) => ({
+          i, sensor: p.sensor, lat: p.lat, lon: p.lon,
+          brightness: p.brightness, date: p.date, time: p.time, satellite: p.satellite,
+          confidence_raw: p.confidence_raw, frp: p.frp, type: TYPE_CODE[p.category] ?? "",
+          confidence_level: p.confidence_level, category: p.category,
+          fire_id: p.fire_id, match_id: p.match_id
+        }));
+        const fireGroups = (d.fires || []).slice()
+          .sort((a, b) => (b.modis + b.viirs) - (a.modis + a.viirs));
+        const grid = (d.grid || []).map(c => ({
+          date: c.date, south: c.south, north: c.north, west: c.west, east: c.east,
+          modis: c.modis_points, viirs: c.viirs_points, seen_by: c.seen_by
+        }));
+        return { points, fireGroups, grid,
+                 matchedCount: d.meta.counts.matched, fireCount: d.meta.counts.fires };
+      }
+
+      const H = fromJSON(DATA);
+      const largestFire = H.fireGroups[0] || null;
+
+      // ============ 3) YARDIMCILAR ============
+      const $ = id => document.getElementById(id);
+      let activeLayer = "points";
+      let filteredFires = [];
+      let filteredStatics = [];
+      let visibleRows = [];
+
+      const escapeHTML = v => String(v ?? "").replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+      const fmt = (n, d = 0) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: d }).format(n);
+      const dateLabel = iso => `${Number(iso.slice(8, 10))} Eki`;
+      const timeLabel = t => { const p = String(t).padStart(4, "0"); return `${p.slice(0, 2)}:${p.slice(2)}`; };
+      const satelliteLabel = s => ({ N: "Suomi-NPP", N20: "NOAA-20", "1": "NOAA-20", J1: "NOAA-20" }[s] || s);
+      const levelLabel = lv => ({ low: "düşük", nominal: "nominal", high: "yüksek", unknown: "?" }[lv] || lv);
+      const categoryLabel = c => ({
+        vegetation: "bitki yangını", static: "sabit ısı kaynağı (yangın değil)",
+        offshore: "deniz (yangın değil)", volcano: "volkan", unknown: "bilinmiyor"
+      }[c] || c);
+      const ratio = (a, b) => b ? (a / b).toFixed(2).replace(".", ",") + "×" : "—";
+
+      function meetsConfidence(p, level) {
+        if (level === "all") return true;
+        if (level === "high") return p.confidence_level === "high";
+        return p.confidence_level === "nominal" || p.confidence_level === "high";
+      }
+
+      // ============ 4) HARİTA ============
+      const rings = [];
+      if (boundaryGeo) {
+        // GeoJSON: koordinatlar [boylam, enlem]; Leaflet [enlem, boylam] ister
+        const feats = boundaryGeo.type === "FeatureCollection" ? boundaryGeo.features : [boundaryGeo];
+        for (const f of feats) {
+          const g = f.geometry || f;
+          const polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
+          for (const poly of polys) for (const r of poly) rings.push(r.map(([lon, lat]) => [lat, lon]));
+        }
+      } else {
+        let ring = [];
+        for (const [lon, lat] of boundary) {
+          ring.push([lat, lon]);
+          if (ring.length > 2 && lon === ring[0][1] && lat === ring[0][0]) { rings.push(ring); ring = []; }
+        }
+        if (ring.length) rings.push(ring);
+      }
+
+      // Harita tek bir dünya ile sınırlı: yatayda tekrar etmez, daha fazla uzaklaştırılamaz.
+      const WORLD = L.latLngBounds([[-85, -180], [85, 180]]);
+      const map = L.map("leafletMap", {
+        zoomControl: false, scrollWheelZoom: true,
+        maxBounds: WORLD, maxBoundsViscosity: 1.0, worldCopyJump: false
+      });
+      L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19, noWrap: true, bounds: WORLD,
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap katkıcıları</a> · Sınır: geoBoundaries · Veriler: NASA FIRMS'
+      }).addTo(map);
+
+      const boundaryLayer = L.featureGroup(rings.map(pts => L.polygon(pts, {
+        color: "#c2410c", weight: 2, opacity: .9, fillColor: "#d63638", fillOpacity: .05
+      }))).addTo(map);
+      map.createPane("gridPane").style.zIndex = "410";
+      map.createPane("pointPane").style.zIndex = "420";
+      const gridLayer = L.layerGroup().addTo(map);
+      const harmonizedLayer = L.layerGroup();
+      const pointLayer = L.layerGroup().addTo(map);
+      const staticLayer = L.layerGroup();
+
+      const mapBounds = boundaryLayer.getBounds();
+      H.points.filter(p => p.category === "vegetation").forEach(p => mapBounds.extend([p.lat, p.lon]));
+      map.fitBounds(mapBounds.pad(.04), { animate: false });
+      L.control.scale({ metric: true, imperial: false, position: "bottomleft" }).addTo(map);
+      window.addEventListener("resize", () => map.invalidateSize());
+      // Sayfa geç yüklenince harita kutusunun boyutu değişebiliyor; kullanıcı haritaya
+      // dokunana kadar boyutu yeniden ölçüp Hatay'a ortalıyoruz.
+      let userTouchedMap = false;
+      $("leafletMap").addEventListener("pointerdown", () => { userTouchedMap = true; });
+      $("leafletMap").addEventListener("wheel", () => { userTouchedMap = true; }, { passive: true });
+      const fixMinZoom = () => map.setMinZoom(Math.max(0, Math.ceil(map.getBoundsZoom(WORLD, true))));
+      fixMinZoom();
+      map.on("resize", fixMinZoom);
+      const refit = () => { if (userTouchedMap) return; map.invalidateSize(); map.fitBounds(mapBounds.pad(.04), { animate: false }); };
+      [100, 400, 1000, 2000].forEach(ms => setTimeout(refit, ms));
+      window.addEventListener("load", refit);
+      if ("ResizeObserver" in window) new ResizeObserver(refit).observe($("leafletMap"));
+
+      // ============ 5) POPUP ============
+      function pointPopup(p) {
+        const catTag = p.category === "vegetation" ? "" : ` · <em>${categoryLabel(p.category)}</em>`;
+        const conf = p.sensor === "VIIRS"
+          ? `${p.confidence_raw} (${levelLabel(p.confidence_level)})`
+          : `%${p.confidence_raw} (${levelLabel(p.confidence_level)})`;
+        const fireInfo = p.fire_id
+          ? `<br>Yangın grubu: <strong>${p.fire_id}</strong>${p.match_id ? " (iki sensörde)" : ""}`
+          : "";
+        return `<strong>${escapeHTML(p.sensor)} · ${escapeHTML(satelliteLabel(p.satellite))}</strong>${catTag}<br>` +
+          `Tarih / saat: ${p.date} · ${timeLabel(p.time)} UTC<br>` +
+          `Koordinat: ${fmt(p.lat, 4)}°K, ${fmt(p.lon, 4)}°D<br>` +
+          `Güven: ${escapeHTML(conf)}<br>` +
+          `Parlaklık: ${p.brightness == null ? "—" : fmt(Number(p.brightness), 1) + " K"}<br>` +
+          `FRP: ${p.frp == null ? "—" : fmt(Number(p.frp), 1) + " MW"}${fireInfo}`;
+      }
+
+      // ============ 6) ÇİZİM ============
+      function drawFirePoints() {
+        const maxFrp = Math.max(1, ...filteredFires.map(x => Number(x.frp) || 0));
+        const sorted = [...filteredFires].sort((a, b) =>
+          (a.sensor === "MODIS" ? -1 : 1) - (b.sensor === "MODIS" ? -1 : 1));
+        for (const p of sorted) {
+          const matched = Boolean(p.match_id);
+          const r = activeLayer === "density" ? 7 : 3.3 + Math.sqrt((Number(p.frp) || 0) / maxFrp) * 2.6;
+          L.circleMarker([p.lat, p.lon], {
+            radius: r, pane: "pointPane",
+            color: matched ? COLORS.matched : "#fff",
+            weight: matched ? 2.2 : 1.2,
+            fillColor: sensorColors[p.sensor],
+            fillOpacity: activeLayer === "density" ? .2 : .9
+          }).bindPopup(pointPopup(p)).addTo(pointLayer);
+        }
+      }
+
+      function drawStaticPoints() {
+        for (const p of filteredStatics) {
+          L.circleMarker([p.lat, p.lon], {
+            radius: 4, pane: "pointPane",
+            color: "#fff", weight: 1,
+            fillColor: COLORS.static, fillOpacity: .8
+          }).bindPopup(pointPopup(p)).addTo(staticLayer);
+        }
+      }
+
+      function drawDensityOrGrid() {
+        gridLayer.clearLayers();
+        const cells = new Map();
+        for (const p of filteredFires) {
+          const lon = Math.floor(p.lon * 10) / 10;
+          const lat = Math.floor(p.lat * 10) / 10;
+          const key = `${lon.toFixed(1)}_${lat.toFixed(1)}`;
+          if (!cells.has(key)) cells.set(key, { lon, lat, MODIS: 0, VIIRS: 0, count: 0 });
+          const c = cells.get(key);
+          c[p.sensor]++; c.count++;
+        }
+        const maxCount = Math.max(1, ...[...cells.values()].map(c => c.count));
+        for (const c of cells.values()) {
+          let fill, opacity;
+          if (activeLayer === "density") {
+            const t = c.count / maxCount;
+            fill = t > .66 ? "#ff6747" : t > .3 ? "#e59c4c" : "#4d9aab";
+            opacity = .14 + t * .56;
+          } else {
+            fill = "#f18754";
+            opacity = .16 + c.count / maxCount * .6;
+          }
+          L.rectangle([[c.lat, c.lon], [c.lat + 0.1, c.lon + 0.1]], {
+            pane: "gridPane", color: "#fff", weight: 1, fillColor: fill, fillOpacity: opacity
+          }).bindPopup(
+            `<strong>${c.lat.toFixed(1)}°K · ${c.lon.toFixed(1)}°D</strong><br>` +
+            `Toplam: ${c.count}<br>MODIS: ${c.MODIS} · VIIRS: ${c.VIIRS}<br>Kare: 0,1° × 0,1°`
+          ).addTo(gridLayer);
+        }
+      }
+
+      function drawHarmonizedGrid(date) {
+        harmonizedLayer.clearLayers();
+        for (const c of H.grid) {
+          if (date !== "all" && c.date !== date) continue;
+          const color = c.seen_by === "both" ? COLORS.matched
+                      : c.seen_by === "MODIS" ? sensorColors.MODIS
+                      : sensorColors.VIIRS;
+          L.rectangle([[c.south, c.west], [c.north, c.east]], {
+            pane: "gridPane", color, weight: 1, fillColor: color, fillOpacity: .35
+          }).bindPopup(
+            `<strong>1 km kare · ${dateLabel(c.date)}</strong><br>` +
+            `Gören: ${c.seen_by === "both" ? "MODIS + VIIRS" : c.seen_by}<br>` +
+            `MODIS: ${c.modis} · VIIRS: ${c.viirs}`
+          ).addTo(harmonizedLayer);
+        }
+      }
+
+      // ============ 7) KARTLAR ============
+      function updateSummary(date) {
+        const fires = filteredFires;
+        const viirs = fires.filter(p => p.sensor === "VIIRS").length;
+        const modis = fires.filter(p => p.sensor === "MODIS").length;
+        const total = fires.length;
+        const peak = fires.reduce((b, p) => Math.max(b, Number(p.frp) || 0), 0);
+        const denom = Math.max(1, total);
+
+        $("totalMetric").textContent = fmt(total);
+        $("viirsMetric").textContent = fmt(viirs);
+        $("modisMetric").textContent = fmt(modis);
+        $("frpMetric").textContent = total ? `${fmt(peak, 1)} MW` : "—";
+        $("viirsFoot").textContent = `Toplamın %${fmt(viirs / denom * 100, 1)}’i`;
+        $("modisFoot").textContent = `Toplamın %${fmt(modis / denom * 100, 1)}’i`;
+        $("dateMetric").textContent = (date === "all" ? "5 günlük arşiv" : dateLabel(date)) +
+          ` · ${fmt(filteredStatics.length)} yangın-dışı ayıklandı`;
+        $("emptyState").hidden = (total + ($("staticToggle").checked ? filteredStatics.length : 0)) > 0;
+
+        const fireIds = new Set(fires.filter(p => p.fire_id).map(p => p.fire_id));
+        const matchedIds = new Set(fires.filter(p => p.match_id).map(p => p.match_id));
+        $("takeaway").innerHTML = total
+          ? `<strong>Öne çıkan bulgu:</strong> VIIRS, MODIS’in <strong>${ratio(viirs, modis)}</strong> katı algılama kaydetti. ` +
+            `Bu filtrede <strong>${fireIds.size}</strong> yangın grubu, <strong>${matchedIds.size}</strong>’i iki sensörde görüldü.`
+          : "Bu filtrelerle eşleşen yangın algılaması yok. Filtreleri gevşetip yeniden deneyin.";
+      }
+
+      function updateCharts(rows) {
+        const dates = ["2020-10-08", "2020-10-09", "2020-10-10", "2020-10-11", "2020-10-12"];
+        const counts = dates.map(date => rows.filter(p => p.date === date).length);
+        const max = Math.max(1, ...counts);
+        $("dailyChart").replaceChildren(...dates.map((date, index) => {
+          const wrap = document.createElement("div");
+          wrap.className = "bar-group";
+          const value = document.createElement("span");
+          value.className = "bar-value";
+          value.textContent = counts[index];
+          const bar = document.createElement("div");
+          bar.className = "bar";
+          bar.style.height = `${Math.max(3, counts[index] / max * 74)}px`;
+          bar.title = `${dateLabel(date)} 2020: ${counts[index]} algılama`;
+          const label = document.createElement("span");
+          label.className = "bar-label";
+          label.textContent = dateLabel(date);
+          wrap.append(value, bar, label);
+          return wrap;
+        }));
+        const viirs = rows.filter(p => p.sensor === "VIIRS").length;
+        const modis = rows.length - viirs;
+        const denom = Math.max(1, rows.length);
+        $("sensorChart").innerHTML = `
+          <div class="compare-row"><span>VIIRS</span><div class="compare-track"><div class="compare-fill" style="width:${viirs / denom * 100}%;background:${sensorColors.VIIRS}"></div></div><span class="compare-number">${viirs} · %${fmt(viirs / denom * 100, 1)}</span></div>
+          <div class="compare-row"><span>MODIS</span><div class="compare-track"><div class="compare-fill" style="width:${modis / denom * 100}%;background:${sensorColors.MODIS}"></div></div><span class="compare-number">${modis} · %${fmt(modis / denom * 100, 1)}</span></div>`;
+      }
+
+      function updateHarmonization(date) {
+        const inDate = item => date === "all" || item.date === date;
+        const firesInDate = H.points.filter(p => p.category === "vegetation" && inDate(p));
+        const m = firesInDate.filter(p => p.sensor === "MODIS").length;
+        const v = firesInDate.filter(p => p.sensor === "VIIRS").length;
+        const gridInDate = H.grid.filter(inDate);
+        const gM = gridInDate.filter(c => c.seen_by !== "VIIRS").length;
+        const gV = gridInDate.filter(c => c.seen_by !== "MODIS").length;
+        const gBoth = gridInDate.filter(c => c.seen_by === "both").length;
+        const gMax = Math.max(1, gM, gV);
+
+        $("rawRatio").textContent = ratio(v, m);
+        $("gridRatio").textContent = ratio(gV, gM);
+        $("ratioTag").textContent = date === "all" ? "5 günlük" : dateLabel(date);
+        const row = (label, val, color) =>
+          `<div class="compare-row"><span>${label}</span><div class="compare-track"><div class="compare-fill" style="width:${val / gMax * 100}%;background:${color}"></div></div><span class="compare-number">${val} kare</span></div>`;
+        $("cellChart").innerHTML =
+          row("VIIRS", gV, sensorColors.VIIRS) +
+          row("MODIS", gM, sensorColors.MODIS) +
+          row("İkisi", gBoth, COLORS.matched);
+      }
+
+      function updateLargestFireCard() {
+        if (!largestFire) return;
+        const name = largestFire.date === FEATURED_DATE ? "Belen yangını" : "En büyük yangın grubu";
+        $("fireTitle").textContent = name;
+        $("fireTag").textContent = `${largestFire.fire_id} · ${dateLabel(largestFire.date)}`;
+        const max = Math.max(1, largestFire.modis, largestFire.viirs, largestFire.grid_modis, largestFire.grid_viirs);
+        const row = (label, val, color) =>
+          `<div class="compare-row"><span>${label}</span><div class="compare-track"><div class="compare-fill" style="width:${val / max * 100}%;background:${color}"></div></div><span class="compare-number">${val}</span></div>`;
+        $("fireChart").innerHTML =
+          row("Ham MODIS", largestFire.modis, sensorColors.MODIS) +
+          row("Ham VIIRS", largestFire.viirs, sensorColors.VIIRS) +
+          row("1 km MODIS", largestFire.grid_modis, sensorColors.MODIS) +
+          row("1 km VIIRS", largestFire.grid_viirs, sensorColors.VIIRS);
+        $("fireTakeaway").innerHTML =
+          `<strong>Ham ${largestFire.modis}/${largestFire.viirs} → ızgara ${largestFire.grid_modis}/${largestFire.grid_viirs}.</strong> ` +
+          `VIIRS pikseli (~375 m) MODIS pikselinden (~1 km) çok daha küçük olduğu için aynı yangın çok daha fazla VIIRS algılaması üretiyor. Ortak 1 km ızgarada fark küçülüyor.`;
+      }
+
+      function updateLegend() {
+        if (activeLayer === "harmonized") {
+          $("mapLegend").innerHTML =
+            `<span class="legend-item"><i class="sq" style="background:${sensorColors.MODIS}"></i>Sadece MODIS</span>` +
+            `<span class="legend-item"><i class="sq" style="background:${sensorColors.VIIRS}"></i>Sadece VIIRS</span>` +
+            `<span class="legend-item"><i class="sq" style="background:${COLORS.matched}"></i>İkisi</span>`;
+        } else if (activeLayer === "density" || activeLayer === "grid") {
+          $("mapLegend").innerHTML =
+            '<span class="scale"><span>Az</span><i class="scale-bar"></i><span>Çok</span></span><span>Algılama / hücre</span>';
+        } else {
+          $("mapLegend").innerHTML =
+            `<span class="legend-item"><i class="dot" style="background:${sensorColors.MODIS}"></i>MODIS</span>` +
+            `<span class="legend-item"><i class="dot" style="background:${sensorColors.VIIRS}"></i>VIIRS</span>` +
+            `<span class="legend-item"><i class="dot dot-ring"></i>Eşleşen</span>` +
+            ($("staticToggle").checked ? `<span class="legend-item"><i class="dot" style="background:${COLORS.static}"></i>Yangın değil</span>` : "");
+        }
+      }
+
+      // ============ 8) RENDER ============
+      function render() {
+        const date = $("dateFilter").value;
+        const sensor = $("sensorFilter").value;
+        const confidence = $("confidenceFilter").value;
+
+        const filteredPoints = H.points.filter(p =>
+          (date === "all" || p.date === date) &&
+          (sensor === "all" || p.sensor === sensor) &&
+          meetsConfidence(p, confidence)
+        );
+        filteredFires = filteredPoints.filter(p => p.category === "vegetation");
+        filteredStatics = filteredPoints.filter(p => p.category !== "vegetation");
+        visibleRows = filteredPoints;
+
+        const pointsOn = activeLayer === "points" || activeLayer === "density" || activeLayer === "compare";
+        const gridOn = activeLayer === "grid" || activeLayer === "density";
+        const harmOn = activeLayer === "harmonized";
+
+        const toggle = (layer, on) => {
+          if (on && !map.hasLayer(layer)) layer.addTo(map);
+          if (!on && map.hasLayer(layer)) map.removeLayer(layer);
+        };
+        toggle(pointLayer, pointsOn);
+        toggle(staticLayer, pointsOn && $("staticToggle").checked);
+        toggle(harmonizedLayer, harmOn);
+        toggle(gridLayer, gridOn);
+        toggle(boundaryLayer, $("boundaryToggle").checked);
+
+        $("mapTitle").textContent = layerNames[activeLayer][0];
+        $("mapMeta").textContent = layerNames[activeLayer][1];
+
+        pointLayer.clearLayers();
+        staticLayer.clearLayers();
+        if (pointsOn) {
+          drawFirePoints();
+          if ($("staticToggle").checked) drawStaticPoints();
+        }
+        if (gridOn) drawDensityOrGrid();
+        if (harmOn) drawHarmonizedGrid(date);
+
+        updateLegend();
+        updateSummary(date);
+        updateCharts(filteredFires);
+        updateHarmonization(date);
+      }
+
+      function setLayer(layer) {
+        activeLayer = layer;
+        document.querySelectorAll(".layer-option").forEach(btn => {
+          btn.setAttribute("aria-pressed", String(btn.dataset.layer === layer));
+        });
+        render();
+      }
+
+      function downloadCsv() {
+        const columns = ["Sensor", "Latitude", "Longitude", "Brightness_K", "Acq_Date", "Acq_Time", "Satellite", "Confidence", "FRP", "Type"];
+        const rows = filteredFires.concat($("staticToggle").checked ? filteredStatics : []);
+        const csv = [columns.join(","), ...rows.map(p => [
+          p.sensor, p.lat, p.lon, p.brightness, p.date, p.time, p.satellite, p.confidence_raw, p.frp, p.type
+        ].map(v => {
+          const s = String(v ?? "");
+          return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+        }).join(","))].join("\r\n");
+        const url = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `hatay-firms-${$("dateFilter").value === "all" ? "tum-tarihler" : $("dateFilter").value}.csv`;
+        link.click();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      }
+
+      // ============ 9) OLAYLAR ============
+      document.querySelectorAll(".layer-option").forEach(btn =>
+        btn.addEventListener("click", () => setLayer(btn.dataset.layer)));
+      ["dateFilter", "sensorFilter", "confidenceFilter", "boundaryToggle", "staticToggle"].forEach(id =>
+        $(id).addEventListener("change", render));
+      $("resetButton").addEventListener("click", () => {
+        $("dateFilter").value = "all";
+        $("sensorFilter").value = "all";
+        $("confidenceFilter").value = "all";
+        $("boundaryToggle").checked = true;
+        $("staticToggle").checked = false;
+        render();
+      });
+      $("zoomIn").addEventListener("click", () => map.zoomIn());
+      $("zoomOut").addEventListener("click", () => map.zoomOut());
+      $("zoomReset").addEventListener("click", () => map.fitBounds(mapBounds.pad(.04)));
+      $("themeToggle").addEventListener("click", () => {
+        manualTheme = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+        applySystemColorScheme();
+      });
+      $("downloadButton").addEventListener("click", downloadCsv);
+
+      // ============ 10) BAŞLAT ============
+      $("methodExtra").textContent = "Sabit ısı kaynakları (FIRMS tip 2, örn. İskenderun kuzeyindeki fabrika) çıkarılmıştır. " +
+        `Ortak 1 km ızgarada MODIS–VIIRS farkı ${ratio(H.points.filter(p=>p.category==="vegetation"&&p.sensor==="VIIRS").length, H.points.filter(p=>p.category==="vegetation"&&p.sensor==="MODIS").length)} → ` +
+        `${ratio(H.grid.filter(c=>c.seen_by!=="MODIS").length, H.grid.filter(c=>c.seen_by!=="VIIRS").length)} aralığına iner. ` +
+        `Toplam ${H.fireCount} yangın grubu, ${H.matchedCount}'i iki sensörde de görüldü.`;
+      updateLargestFireCard();
+      render();
+    })();
+  </script>
+</body>
+</html>
