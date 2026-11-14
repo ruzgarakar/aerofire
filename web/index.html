@@ -22,7 +22,7 @@
     applySystemColorScheme(systemColorScheme);
     systemColorScheme.addEventListener("change", applySystemColorScheme);
 </script>
-  <title>Hatay Wildfire Observation Panel — NASA Space Apps</title>
+  <title>Türkiye Wildfire Observation Panel — AeroFire</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -61,13 +61,16 @@
     .brand-sub { margin-top: 3px; color: var(--muted); font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
     .side-label { margin: 0 0 10px; color: #75858e; font-size: 10px; font-weight: 750; letter-spacing: .14em; text-transform: uppercase; }
     .layer-list { display: grid; gap: 7px; }
-    .layer-option {
+    .layer-option,
+.range-option {
       width: 100%; padding: 10px 11px; display: flex; align-items: center; gap: 10px;
       text-align: left; border: 1px solid transparent; border-radius: 10px;
       background: transparent; color: #aab6bb; cursor: pointer; transition: .18s ease;
     }
-    .layer-option:hover { background: #172127; color: var(--text); }
-    .layer-option[aria-pressed="true"] { border-color: #82513d; background: #2a211e; color: #ffe2cc; }
+    .layer-option:hover,
+.range-option:hover { background: #172127; color: var(--text); }
+    .layer-option[aria-pressed="true"],
+.range-option[aria-pressed="true"] { border-color: #82513d; background: #2a211e; color: #ffe2cc; }
     .layer-icon { width: 26px; height: 26px; flex: 0 0 26px; display: grid; place-items: center; border-radius: 8px; background: #1b272d; color: #e6a267; }
     .layer-icon svg { width: 15px; height: 15px; }
     .layer-name { display: block; font-size: 12px; font-weight: 650; }
@@ -190,9 +193,12 @@
     .primary-link[aria-current="page"] .nav-symbol { color: #fff; }
     .side-label { color: #a7aaad; letter-spacing: .08em; }
     .layer-list { gap: 3px; }
-    .layer-option { padding: 7px 9px; gap: 8px; border-radius: 3px; color: #dcdcde; }
-    .layer-option:hover { background: #2c3338; color: #fff; }
-    .layer-option[aria-pressed="true"] { border-color: #3c434a; background: #2c3338; color: #fff; box-shadow: inset 3px 0 #72aee6; }
+    .layer-option,
+.range-option { padding: 7px 9px; gap: 8px; border-radius: 3px; color: #dcdcde; }
+    .layer-option:hover,
+.range-option:hover { background: #2c3338; color: #fff; }
+    .layer-option[aria-pressed="true"],
+.range-option[aria-pressed="true"] { border-color: #3c434a; background: #2c3338; color: #fff; box-shadow: inset 3px 0 #72aee6; }
     .layer-icon { background: transparent; color: #a7aaad; }
     .layer-name { font-size: 11px; font-weight: 600; }
     .layer-detail { color: #a7aaad; }
@@ -280,9 +286,12 @@
     .primary-link[aria-current="page"] { background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
     .nav-symbol { color: #d3bdce; }
     .primary-link[aria-current="page"] .nav-symbol { color: #ff9a76; }
-    .layer-option { color: #f0e8ee; }
-    .layer-option:hover { background: #4b203e; color: #fff; }
-    .layer-option[aria-pressed="true"] { border-color: #70445f; background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
+    .layer-option,
+.range-option { color: #f0e8ee; }
+    .layer-option:hover,
+.range-option:hover { background: #4b203e; color: #fff; }
+    .layer-option[aria-pressed="true"],
+.range-option[aria-pressed="true"] { border-color: #70445f; background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
     .layer-icon { color: #ff8a61; }
     .layer-detail { color: #c5b3c0; }
     .side-divider { background: #563447; }
@@ -368,9 +377,12 @@
     }
     :root[data-theme="light"] .nav-symbol,
     :root[data-theme="light"] .primary-link[aria-current="page"] .nav-symbol { color: #77216f; }
-    :root[data-theme="light"] .layer-option { color: #3c343a; }
-    :root[data-theme="light"] .layer-option:hover { background: #f5edf3; color: #2c001e; }
-    :root[data-theme="light"] .layer-option[aria-pressed="true"] {
+    :root[data-theme="light"] .layer-option,
+:root[data-theme="light"] .range-option { color: #3c343a; }
+    :root[data-theme="light"] .layer-option:hover,
+:root[data-theme="light"] .range-option:hover { background: #f5edf3; color: #2c001e; }
+    :root[data-theme="light"] .layer-option[aria-pressed="true"],
+:root[data-theme="light"] .range-option[aria-pressed="true"] {
       border-color: #e4c9dc;
       background: #f5edf3;
       color: #2c001e;
@@ -495,9 +507,12 @@
     :root[data-theme="dark"] .primary-link[aria-current="page"] { background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
     :root[data-theme="dark"] .nav-symbol { color: #d3bdce; }
     :root[data-theme="dark"] .primary-link[aria-current="page"] .nav-symbol { color: #ff9a76; }
-    :root[data-theme="dark"] .layer-option { color: #f0e8ee; }
-    :root[data-theme="dark"] .layer-option:hover { background: #4b203e; color: #fff; }
-    :root[data-theme="dark"] .layer-option[aria-pressed="true"] { border-color: #70445f; background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
+    :root[data-theme="dark"] .layer-option,
+:root[data-theme="dark"] .range-option { color: #f0e8ee; }
+    :root[data-theme="dark"] .layer-option:hover,
+:root[data-theme="dark"] .range-option:hover { background: #4b203e; color: #fff; }
+    :root[data-theme="dark"] .layer-option[aria-pressed="true"],
+:root[data-theme="dark"] .range-option[aria-pressed="true"] { border-color: #70445f; background: #4b203e; color: #fff; box-shadow: inset 3px 0 #e95420; }
     :root[data-theme="dark"] .layer-icon { color: #ff8a61; }
     :root[data-theme="dark"] .layer-detail,
     :root[data-theme="dark"] .range-meta,
@@ -642,7 +657,8 @@
       .primary-link { padding: 7px 5px; justify-content: center; gap: 5px; font-size: 10px; }
       .nav-symbol { width: auto; }
       .layer-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-      .layer-option { padding: 8px; gap: 7px; }
+      .layer-option,
+.range-option { padding: 8px; gap: 7px; }
       .layer-name { font-size: 10px; }
       .layer-detail { font-size: 9px; }
       .side-divider { display: none; }
@@ -654,6 +670,9 @@
       .map-meta { max-width: 210px; line-height: 1.5; }
       .footer { flex-direction: column; }
     }
+
+    .mode-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    a.action { display: inline-flex; align-items: center; text-decoration: none; }
 </style>
 </head>
 <body>
@@ -671,6 +690,37 @@
         <a class="primary-link" href="#sources"><span class="nav-symbol" aria-hidden="true">ⓘ</span>Data and method</a>
       </nav>
 
+      <section>
+        <h2 class="side-label">Time range</h2>
+        <div class="layer-list" role="group" aria-label="Choose a time range">
+          <button class="range-option" type="button" data-range="live" aria-pressed="false">
+            <span class="layer-icon" aria-hidden="true">●</span>
+            <span><span class="layer-name">Live</span><span class="layer-detail">Last 7 days · refreshes automatically</span></span>
+          </button>
+          <button class="range-option" type="button" data-range="d10" aria-pressed="false">
+            <span class="layer-icon" aria-hidden="true">10</span>
+            <span><span class="layer-name">Last 10 days</span><span class="layer-detail">Recent activity</span></span>
+          </button>
+          <button class="range-option" type="button" data-range="d30" aria-pressed="false">
+            <span class="layer-icon" aria-hidden="true">1m</span>
+            <span><span class="layer-name">Last month</span><span class="layer-detail">30 days</span></span>
+          </button>
+          <button class="range-option" type="button" data-range="d90" aria-pressed="false">
+            <span class="layer-icon" aria-hidden="true">3m</span>
+            <span><span class="layer-name">Last 3 months</span><span class="layer-detail">90 days</span></span>
+          </button>
+          <button class="range-option" type="button" data-range="d180" aria-pressed="false">
+            <span class="layer-icon" aria-hidden="true">6m</span>
+            <span><span class="layer-name">Last 6 months</span><span class="layer-detail">180 days</span></span>
+          </button>
+          <button class="range-option" type="button" data-range="d365" aria-pressed="true">
+            <span class="layer-icon" aria-hidden="true">1y</span>
+            <span><span class="layer-name">Last year</span><span class="layer-detail">365 days</span></span>
+          </button>
+        </div>
+      </section>
+
+      <div class="side-divider"></div>
       <section>
         <h2 class="side-label">Map view</h2>
         <div class="layer-list" role="group" aria-label="Choose a map layer">
@@ -701,7 +751,7 @@
       <section class="filter-section">
         <h2 class="side-label">Observation filters</h2>
         <div class="filters">
-          <div class="field">
+          <div class="field" hidden>
             <label for="dateFilter">Observation day</label>
             <select id="dateFilter">
               <option value="all">All dates</option>
@@ -730,10 +780,8 @@
             <div class="range-meta">MODIS: ≥50 / ≥80 · VIIRS: nominal+ / high</div>
           </div>
           <div class="field">
-            <label class="check-row"><input id="boundaryToggle" type="checkbox" checked> Show Hatay province boundary</label>
+            <label class="check-row" hidden><input id="boundaryToggle" type="checkbox"> Province boundary</label>
             <label class="check-row check-gap"><input id="staticToggle" type="checkbox"> Show non-fire points (static heat + offshore)</label>
-            <label class="check-row check-gap"><input id="liveToggle" type="checkbox"> Show live detections (updates hourly)</label>
-            <div class="range-meta" id="liveStatus" aria-live="polite"></div>
           </div>
         </div>
         <div class="legend" aria-label="Sensor colors">
@@ -749,9 +797,10 @@
     <main class="main">
       <header class="topbar" id="overview">
         <div>
-          <div class="eyebrow">NASA FIRMS · Oct 8–12, 2020</div>
-          <h1>Hatay wildfire detections</h1>
-          <p class="subtitle">Active fire detections by the MODIS and VIIRS satellites over Hatay</p>
+          <nav class="mode-tabs" aria-label="Sections"><a class="action primary" href="index.html" aria-current="page">Türkiye · live monitoring</a><a class="action" href="belen.html">Belen fire · Oct 2020 case study</a></nav>
+          <div class="eyebrow" id="eyebrow">NASA FIRMS · Türkiye</div>
+          <h1>Türkiye wildfire detections</h1>
+          <p class="subtitle" id="subtitle">Active fire detections by the MODIS and VIIRS satellites over Türkiye</p>
         </div>
         <div class="top-actions">
           <div class="theme-control" role="group" aria-label="Display theme">
@@ -774,7 +823,7 @@
         <article class="metric"><div class="metric-head">Peak FRP <span class="metric-symbol value-gold">↗</span></div><div class="metric-value value-gold" id="frpMetric">—</div><div class="metric-foot">Fire radiative power · MW</div></article>
       </section>
 
-      <section class="map-card" id="map" aria-label="Interactive map of Hatay">
+      <section class="map-card" id="map" aria-label="Interactive map of Türkiye">
         <div class="map-head">
           <div>
             <div class="map-heading"><span class="live-dot"></span><span id="mapTitle">Satellite detection points</span></div>
@@ -787,7 +836,7 @@
           </div>
         </div>
         <div class="map-stage" id="mapStage">
-          <div id="leafletMap" role="application" aria-label="Map of the Hatay province boundary and fire detections"></div>
+          <div id="leafletMap" role="application" aria-label="Map of fire detections in Türkiye"></div>
           <div class="map-error" id="mapError" hidden>The map could not be loaded. Check your internet connection for the base map and refresh the page.</div>
           <div class="empty-state" id="emptyState" hidden>No detections match these filters.<br>Loosen the filters and try again.</div>
           <div class="map-legend" id="mapLegend"><span class="legend-item"><i class="dot" style="background:#ff855d"></i>MODIS</span><span class="legend-item"><i class="dot" style="background:#69b9e8"></i>VIIRS</span></div>
@@ -827,12 +876,11 @@
       <section class="method" id="sources">
         <strong>How to read this</strong> FIRMS records active fire / thermal anomaly detections. Because MODIS and VIIRS differ in spatial resolution and overpass times, detection counts must not be read directly as a number of fires. FRP (MW) measures the radiative energy output of a detected fire; it is not a measure of damage or burned area. <span id="methodExtra"></span>
       </section>
-      <footer class="footer"><span>Source: NASA FIRMS archive data · MODIS &amp; VIIRS · Hatay, Türkiye</span><span>Base map needs an internet connection · Data period: Oct 8–12, 2020</span></footer>
+      <footer class="footer"><span>Source: NASA FIRMS (archive + near-real-time) · MODIS &amp; VIIRS · Türkiye</span><span>Base map needs an internet connection · <span id="footPeriod">—</span></span></footer>
     </main>
   </div>
 
-  <script id="boundary-data" type="application/json">[[36.1809,35.9017],[36.1891,35.8844],[36.1831,35.8356],[36.1691,35.8154],[36.1548,35.8202],[36.1417,35.8465],[36.1341,35.8553],[36.1164,35.8655],[36.0499,35.8791],[36.0187,35.8811],[36.0163,35.8837],[36.0149,35.8899],[36.0217,35.9087],[36.0229,35.9245],[36.0163,35.9341],[36.0085,35.9403],[36.0015,35.9409],[35.9937,35.9393],[35.9509,35.9218],[35.9358,35.9187],[35.9185,35.9323],[35.9188,35.9482],[35.9212,35.9504],[35.9232,35.9565],[35.9282,35.9568],[35.9296,35.9582],[35.929,35.9618],[35.9368,35.9682],[35.9415,35.9701],[35.9551,35.9829],[35.9571,35.9824],[35.9574,35.9868],[35.959,35.9871],[35.9582,35.9893],[35.9607,35.9938],[35.9701,36.0004],[35.9735,36.001],[35.9765,36.0046],[35.979,36.0046],[35.9779,36.0065],[35.9799,36.0071],[35.9787,36.0085],[35.9813,36.0104],[35.979,36.019],[35.964,36.044],[35.9543,36.0624],[35.9504,36.0732],[35.9451,36.0801],[35.9338,36.1024],[35.9193,36.1243],[35.9132,36.1243],[35.9113,36.1265],[35.916,36.1254],[35.9132,36.1265],[35.9143,36.1296],[35.9118,36.1318],[35.9104,36.1385],[35.9038,36.1435],[35.9049,36.1457],[35.8968,36.1579],[35.8854,36.1701],[35.8787,36.1724],[35.8771,36.1782],[35.8735,36.1796],[35.8718,36.1846],[35.8657,36.1907],[35.8599,36.2004],[35.8576,36.2012],[35.8535,36.2085],[35.8532,36.2118],[35.8407,36.2268],[35.8382,36.2326],[35.8235,36.2454],[35.819,36.2535],[35.8129,36.2593],[35.8104,36.2599],[35.7993,36.2743],[35.7901,36.2804],[35.7882,36.2874],[35.7829,36.2915],[35.7821,36.2979],[35.7804,36.2988],[35.7843,36.3049],[35.7835,36.311],[35.7796,36.3176],[35.781,36.3224],[35.7854,36.3237],[35.7887,36.3304],[35.7951,36.3349],[35.7993,36.3351],[35.8024,36.3385],[35.8074,36.3396],[35.8082,36.3421],[35.8132,36.3457],[35.816,36.3521],[35.816,36.3604],[35.8174,36.3593],[35.821,36.3601],[35.8312,36.366],[35.8382,36.3657],[35.8535,36.369],[35.8568,36.3724],[35.859,36.3782],[35.8604,36.3957],[35.8696,36.4012],[35.8732,36.4057],[35.8743,36.4101],[35.8801,36.4162],[35.8821,36.4165],[35.8857,36.4137],[35.8943,36.414],[35.896,36.4154],[35.9004,36.4249],[35.9015,36.4376],[35.9068,36.4401],[35.9085,36.4443],[35.9154,36.4437],[35.9179,36.4468],[35.9257,36.4501],[35.9321,36.4604],[35.9418,36.4596],[35.9546,36.466],[35.9607,36.466],[35.9712,36.4712],[35.9826,36.4743],[35.9929,36.4851],[35.9982,36.4949],[36.0062,36.4976],[36.0118,36.5018],[36.0218,36.5149],[36.0296,36.519],[36.031,36.5229],[36.034,36.5257],[36.0368,36.5337],[36.051,36.5376],[36.0971,36.5585],[36.1043,36.5646],[36.1101,36.5662],[36.1218,36.5721],[36.1218,36.5735],[36.1374,36.5804],[36.1396,36.5851],[36.1488,36.5907],[36.1532,36.5907],[36.1621,36.5951],[36.1732,36.5915],[36.1757,36.5921],[36.1774,36.5951],[36.1768,36.5915],[36.1854,36.5924],[36.1871,36.5937],[36.1862,36.5954],[36.1888,36.5951],[36.1893,36.5932],[36.1907,36.596],[36.1929,36.5935],[36.1946,36.5965],[36.1876,36.5996],[36.1946,36.599],[36.1963,36.6029],[36.1951,36.6051],[36.1968,36.6049],[36.1968,36.6118],[36.1982,36.6124],[36.1971,36.6135],[36.1974,36.6218],[36.1963,36.6221],[36.1976,36.6301],[36.2057,36.6351],[36.2071,36.639],[36.211,36.6407],[36.2115,36.6512],[36.2157,36.6604],[36.2121,36.6651],[36.2068,36.6632],[36.204,36.6637],[36.2124,36.6668],[36.2107,36.6707],[36.2124,36.6724],[36.2062,36.684],[36.2035,36.6835],[36.2043,36.6876],[36.2026,36.6876],[36.1926,36.7051],[36.1954,36.7085],[36.1965,36.7157],[36.1954,36.7207],[36.1926,36.7221],[36.1979,36.7204],[36.2029,36.7212],[36.2026,36.7226],[36.2007,36.7224],[36.2021,36.727],[36.2001,36.7293],[36.1976,36.7282],[36.196,36.7293],[36.1974,36.7324],[36.1929,36.7293],[36.1871,36.729],[36.1957,36.7326],[36.1921,36.7385],[36.1904,36.7465],[36.1918,36.7532],[36.1974,36.7585],[36.1976,36.7615],[36.2029,36.7615],[36.2062,36.7663],[36.206,36.7751],[36.2043,36.7793],[36.206,36.781],[36.2057,36.7835],[36.199,36.7935],[36.1807,36.8132],[36.1765,36.8204],[36.1715,36.8187],[36.1696,36.8193],[36.1738,36.8204],[36.174,36.8229],[36.1674,36.829],[36.1626,36.8385],[36.1465,36.8571],[36.141,36.8604],[36.1318,36.854],[36.1315,36.8524],[36.1293,36.8535],[36.1407,36.8621],[36.124,36.876],[36.1237,36.8796],[36.1093,36.886],[36.0854,36.9001],[36.086,36.9013],[36.0882,36.9001],[36.089,36.9021],[36.0849,36.9029],[36.0829,36.9007],[36.0851,36.9054],[36.0826,36.9049],[36.0785,36.9068],[36.079,36.9049],[36.0826,36.9032],[36.0807,36.9026],[36.0699,36.9093],[36.0588,36.9137],[36.0576,36.916],[36.0429,36.9193],[36.0376,36.9218],[36.0365,36.924],[36.0315,36.9243],[36.0276,36.9274],[36.0185,36.9285],[36.0171,36.9301],[36.0049,36.9301],[36.0015,36.926],[35.9899,36.9204],[35.9893,36.9182],[35.9938,36.9113],[35.9926,36.9074],[35.9912,36.9068],[35.9921,36.9118],[35.9882,36.9185],[35.9849,36.9188],[35.9826,36.9157],[35.9854,36.9093],[35.984,36.9057],[35.9829,36.9071],[35.9837,36.9101],[35.9801,36.914],[35.9751,36.9082],[35.964,36.904],[35.9588,36.894],[35.954,36.8907],[35.9449,36.8899],[35.9376,36.8865],[35.9371,36.8835],[35.9404,36.8824],[35.9388,36.879],[35.9449,36.8743],[35.9457,36.8643],[35.9437,36.8679],[35.9435,36.8743],[35.936,36.8807],[35.934,36.8799],[35.9188,36.889],[35.9136,36.8955],[35.9124,36.9008],[35.9143,36.9085],[35.947,36.9569],[35.9786,36.9828],[35.9956,36.9944],[36.0118,37.0024],[36.0416,37.0256],[36.0881,37.0227],[36.1645,37.0223],[36.1795,37.02],[36.2046,37.0124],[36.2547,37.0087],[36.2899,36.9944],[36.2983,36.9866],[36.3117,36.9685],[36.3472,36.9553],[36.3716,36.9525],[36.4426,36.9533],[36.4551,36.941],[36.4856,36.9248],[36.5188,36.9009],[36.5454,36.8893],[36.5815,36.8643],[36.6024,36.8556],[36.6261,36.841],[36.6409,36.8371],[36.6632,36.8388],[36.6685,36.8368],[36.6786,36.8185],[36.6782,36.8112],[36.6703,36.7998],[36.6328,36.7663],[36.6271,36.7577],[36.624,36.7471],[36.6252,36.7425],[36.6351,36.728],[36.6387,36.7116],[36.6369,36.7051],[36.6278,36.6953],[36.6188,36.68],[36.6064,36.6715],[36.5919,36.6501],[36.588,36.636],[36.5879,36.6305],[36.6006,36.6005],[36.6029,36.591],[36.6042,36.5791],[36.5999,36.562],[36.5961,36.5557],[36.5913,36.5375],[36.5833,36.5227],[36.5734,36.5121],[36.553,36.5011],[36.5529,36.497],[36.557,36.4918],[36.555,36.4858],[36.5678,36.4677],[36.5685,36.445],[36.5735,36.4423],[36.5756,36.4386],[36.5769,36.4248],[36.585,36.4117],[36.5867,36.4019],[36.5891,36.3978],[36.5932,36.3942],[36.5993,36.3923],[36.6067,36.3913],[36.6157,36.3927],[36.6226,36.3912],[36.6235,36.388],[36.6203,36.3749],[36.6278,36.3597],[36.6277,36.3542],[36.612,36.3407],[36.6077,36.3329],[36.6078,36.3299],[36.6116,36.3279],[36.6215,36.3288],[36.6394,36.3356],[36.6502,36.3361],[36.6593,36.334],[36.6662,36.3302],[36.6692,36.3262],[36.6689,36.3094],[36.6711,36.3024],[36.6948,36.2969],[36.7003,36.2922],[36.6991,36.2871],[36.6923,36.2764],[36.6928,36.2716],[36.6958,36.266],[36.706,36.2552],[36.7048,36.2503],[36.7007,36.2443],[36.6842,36.2373],[36.6749,36.2293],[36.6406,36.2292],[36.6274,36.2177],[36.6184,36.2166],[36.6093,36.2175],[36.5839,36.2321],[36.5782,36.2324],[36.5574,36.2281],[36.5426,36.2381],[36.5228,36.2381],[36.5095,36.23],[36.4954,36.2345],[36.4924,36.2328],[36.4892,36.2187],[36.4817,36.2055],[36.4773,36.2029],[36.4711,36.2018],[36.4575,36.2084],[36.4353,36.2113],[36.4267,36.2145],[36.4128,36.2231],[36.4034,36.2264],[36.3975,36.2232],[36.3976,36.2127],[36.4031,36.1996],[36.4006,36.1915],[36.3987,36.1898],[36.3888,36.1885],[36.3817,36.1807],[36.3767,36.1694],[36.3883,36.1515],[36.392,36.1426],[36.3812,36.1188],[36.3852,36.1078],[36.386,36.0994],[36.3887,36.0948],[36.3942,36.0906],[36.3978,36.0838],[36.3887,36.0682],[36.3946,36.0525],[36.3951,36.046],[36.3925,36.0398],[36.3834,36.0314],[36.3808,36.026],[36.3823,36.0099],[36.3786,36.001],[36.3684,35.9948],[36.3569,35.992],[36.3442,35.9924],[36.3172,36.0041],[36.3028,35.9964],[36.2979,35.9917],[36.2946,35.9802],[36.3061,35.9607],[36.3025,35.9574],[36.2897,35.9539],[36.2789,35.9548],[36.2634,35.9617],[36.2546,35.9638],[36.2444,35.9635],[36.2288,35.9604],[36.2127,35.9515],[36.1992,35.9356],[36.1877,35.9185],[36.1809,35.9017],[36.1865,36.7238],[36.1888,36.7226],[36.186,36.7224],[36.184,36.7243],[36.1865,36.7238]]</script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     (async () => {
       "use strict";
@@ -842,20 +890,43 @@
         if (!res.ok) throw new Error(url + " -> HTTP " + res.status);
         return res.json();
       }
+      const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      const RANGES = {
+        live: { label: "Live · last 7 days", days: 7 },
+        d10:  { label: "Last 10 days", days: 10 },
+        d30:  { label: "Last month", days: 30 },
+        d90:  { label: "Last 3 months", days: 90 },
+        d180: { label: "Last 6 months", days: 180 },
+        d365: { label: "Last year", days: 365 }
+      };
+      const EMPTY_DATA = { meta: { counts: { matched: 0, fires: 0 } }, points: [], fires: [], grid: [] };
+      let rangeKey = new URLSearchParams(location.search).get("p");
+      if (!RANGES[rangeKey]) rangeKey = "d365";
+      const cacheByFile = {};
+      async function loadBase(key) {
+        try {
+          if (key === "live") return await loadJSON("data/live.json?t=" + Date.now());
+          if (!cacheByFile.year) cacheByFile.year = await loadJSON("data/tr_year.json");
+          return cacheByFile.year;
+        } catch (e) { console.warn(e); return null; }
+      }
+      const cutoffISO = days => { const d = new Date(); d.setUTCDate(d.getUTCDate() - (days - 1)); return d.toISOString().slice(0, 10); };
+      let liveTimer = null;
+      let newKeys = new Set();
+      const keyOfPoint = p => `${p.sensor}|${p.lat}|${p.lon}|${p.date}|${p.time}`;
       let DATA;
       try {
-        DATA = await loadJSON("data/points.json");
+        DATA = (await loadBase(rangeKey)) || EMPTY_DATA;
       } catch (err) {
         console.error(err);
         document.body.insertAdjacentHTML("afterbegin",
           '<div style="position:fixed;z-index:99999;top:0;left:0;right:0;padding:12px 16px;background:#b3261e;color:#fff;font:14px sans-serif">' +
-          'Data could not be loaded (data/points.json). Open the page with Live Server or GitHub Pages. Details: ' + String(err.message) + '</div>');
+          'Data could not be loaded. Open the page with Live Server or GitHub Pages. Details: ' + String(err.message) + '</div>');
         return;
       }
 
-      let boundaryGeo = null;
-      try { boundaryGeo = await loadJSON("data/hatay_boundary.geojson"); } catch (e) { boundaryGeo = null; }
-      const boundary = JSON.parse(document.getElementById("boundary-data").textContent);
+      const boundaryGeo = null;
+      const boundary = [];
 
       const sensorColors = { MODIS: "#ff855d", VIIRS: "#69b9e8" };
       const COLORS = { MODIS: sensorColors.MODIS, VIIRS: sensorColors.VIIRS, matched: "#FFB020", static: "#8A8F98" };
@@ -912,11 +983,20 @@
           modis: c.modis_points, viirs: c.viirs_points, seen_by: c.seen_by
         }));
         return { points, fireGroups, grid,
-                 matchedCount: d.meta.counts.matched, fireCount: d.meta.counts.fires };
+                 matchedCount: 0, fireCount: 0 };
       }
 
-      const H = fromJSON(DATA);
-      const largestFire = H.fireGroups[0] || null;
+      function ranged(d, key) {
+        const cut = cutoffISO(RANGES[key].days);
+        const full = fromJSON(d);
+        const keep = x => x.date >= cut;
+        const points = full.points.filter(keep);
+        const fireGroups = full.fireGroups.filter(keep);
+        const grid = full.grid.filter(keep);
+        return { points, fireGroups, grid, matchedCount: fireGroups.filter(f => f.matched).length, fireCount: fireGroups.length };
+      }
+      let H = ranged(DATA, rangeKey);
+      let largestFire = H.fireGroups[0] || null;
 
       const $ = id => document.getElementById(id);
       let activeLayer = "points";
@@ -928,7 +1008,7 @@
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
       }[ch]));
       const fmt = (n, d = 0) => new Intl.NumberFormat("en-US", { maximumFractionDigits: d }).format(n);
-      const dateLabel = iso => `Oct ${Number(iso.slice(8, 10))}`;
+      const dateLabel = iso => `${MONTHS[Number(iso.slice(5, 7)) - 1]} ${Number(iso.slice(8, 10))}`;
       const timeLabel = t => { const p = String(t).padStart(4, "0"); return `${p.slice(0, 2)}:${p.slice(2)}`; };
       const satelliteLabel = s => ({ N: "Suomi-NPP", N20: "NOAA-20", "1": "NOAA-20", J1: "NOAA-20" }[s] || s);
       const levelLabel = lv => ({ low: "low", nominal: "nominal", high: "high", unknown: "?" }[lv] || lv);
@@ -964,12 +1044,12 @@
 
       const WORLD = L.latLngBounds([[-85, -180], [85, 180]]);
       const map = L.map("leafletMap", {
-        zoomControl: false, scrollWheelZoom: true,
+        zoomControl: false, scrollWheelZoom: true, preferCanvas: true,
         maxBounds: WORLD, maxBoundsViscosity: 1.0, worldCopyJump: false
       });
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19, noWrap: true, bounds: WORLD,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> · Boundary: geoBoundaries · Data: NASA FIRMS'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> · Data: NASA FIRMS'
       }).addTo(map);
 
       const boundaryLayer = L.featureGroup(rings.map(pts => L.polygon(pts, {
@@ -981,11 +1061,8 @@
       const harmonizedLayer = L.layerGroup();
       const pointLayer = L.layerGroup().addTo(map);
       const staticLayer = L.layerGroup();
-      const liveLayer = L.layerGroup();
-      map.createPane("livePane").style.zIndex = "430";
 
-      const mapBounds = boundaryLayer.getBounds();
-      H.points.filter(p => p.category === "vegetation").forEach(p => mapBounds.extend([p.lat, p.lon]));
+      const mapBounds = L.latLngBounds([[35.7, 25.6], [42.2, 44.9]]);
       map.fitBounds(mapBounds.pad(.04), { animate: false });
       L.control.scale({ metric: true, imperial: false, position: "bottomleft" }).addTo(map);
       window.addEventListener("resize", () => map.invalidateSize());
@@ -1026,8 +1103,8 @@
           const r = activeLayer === "density" ? 7 : 3.3 + Math.sqrt((Number(p.frp) || 0) / maxFrp) * 2.6;
           L.circleMarker([p.lat, p.lon], {
             radius: r, pane: "pointPane",
-            color: matched ? COLORS.matched : "#fff",
-            weight: matched ? 2.2 : 1.2,
+            color: newKeys.has(keyOfPoint(p)) ? "#ff2d2d" : (matched ? COLORS.matched : "#fff"),
+            weight: newKeys.has(keyOfPoint(p)) ? 3.2 : (matched ? 2.2 : 1.2),
             fillColor: sensorColors[p.sensor],
             fillOpacity: activeLayer === "density" ? .2 : .9
           }).bindPopup(pointPopup(p)).addTo(pointLayer);
@@ -1106,7 +1183,7 @@
         $("frpMetric").textContent = total ? `${fmt(peak, 1)} MW` : "—";
         $("viirsFoot").textContent = `${fmt(viirs / denom * 100, 1)}% of total`;
         $("modisFoot").textContent = `${fmt(modis / denom * 100, 1)}% of total`;
-        $("dateMetric").textContent = (date === "all" ? "5-day archive" : dateLabel(date)) +
+        $("dateMetric").textContent = (date === "all" ? RANGES[rangeKey].label : dateLabel(date)) +
           ` · ${fmt(filteredStatics.length)} non-fire removed`;
         $("emptyState").hidden = (total + ($("staticToggle").checked ? filteredStatics.length : 0)) > 0;
 
@@ -1119,22 +1196,37 @@
       }
 
       function updateCharts(rows) {
-        const dates = ["2020-10-08", "2020-10-09", "2020-10-10", "2020-10-11", "2020-10-12"];
-        const counts = dates.map(date => rows.filter(p => p.date === date).length);
+        const byMonth = RANGES[rangeKey].days > 31;
+        const keyOf = p => byMonth ? p.date.slice(0, 7) : p.date;
+        const labelOf = k => byMonth ? `${MONTHS[Number(k.slice(5, 7)) - 1]} ${k.slice(2, 4)}` : dateLabel(k);
+        const tally = new Map();
+        for (const p of rows) tally.set(keyOf(p), (tally.get(keyOf(p)) || 0) + 1);
+        const dates = [];
+        {
+          const cur = new Date(cutoffISO(RANGES[rangeKey].days) + "T00:00:00Z");
+          const end = new Date(); end.setUTCHours(0, 0, 0, 0);
+          while (cur <= end) {
+            const k = (byMonth ? cur.toISOString().slice(0, 7) : cur.toISOString().slice(0, 10));
+            if (dates[dates.length - 1] !== k) dates.push(k);
+            cur.setUTCDate(cur.getUTCDate() + 1);
+          }
+        }
+        const counts = dates.map(k => tally.get(k) || 0);
+        const labelStep = Math.max(1, Math.ceil(dates.length / 10));
         const max = Math.max(1, ...counts);
         $("dailyChart").replaceChildren(...dates.map((date, index) => {
           const wrap = document.createElement("div");
           wrap.className = "bar-group";
           const value = document.createElement("span");
           value.className = "bar-value";
-          value.textContent = counts[index];
+          value.textContent = dates.length > 16 ? "" : counts[index];
           const bar = document.createElement("div");
           bar.className = "bar";
           bar.style.height = `${Math.max(3, counts[index] / max * 74)}px`;
-          bar.title = `${dateLabel(date)}, 2020: ${counts[index]} detections`;
+          bar.title = `${labelOf(date)}: ${counts[index]} detections`;
           const label = document.createElement("span");
           label.className = "bar-label";
-          label.textContent = dateLabel(date);
+          label.textContent = index % labelStep === 0 ? labelOf(date) : "";
           wrap.append(value, bar, label);
           return wrap;
         }));
@@ -1159,7 +1251,7 @@
 
         $("rawRatio").textContent = ratio(v, m);
         $("gridRatio").textContent = ratio(gV, gM);
-        $("ratioTag").textContent = date === "all" ? "5 days" : dateLabel(date);
+        $("ratioTag").textContent = date === "all" ? RANGES[rangeKey].label : dateLabel(date);
         const row = (label, val, color) =>
           `<div class="compare-row"><span>${label}</span><div class="compare-track"><div class="compare-fill" style="width:${val / gMax * 100}%;background:${color}"></div></div><span class="compare-number">${val} squares</span></div>`;
         $("cellChart").innerHTML =
@@ -1169,10 +1261,16 @@
       }
 
       function updateLargestFireCard() {
-        if (!largestFire) return;
+        if (!largestFire) {
+          $("fireTitle").textContent = "Largest fire group";
+          $("fireTag").textContent = "—";
+          $("fireChart").innerHTML = "";
+          $("fireTakeaway").textContent = "No fire groups in this period.";
+          return;
+        }
         const name = largestFire.date === FEATURED_DATE ? "Belen fire" : "Largest fire group";
         $("fireTitle").textContent = name;
-        $("fireTag").textContent = `${largestFire.fire_id} · ${dateLabel(largestFire.date)}`;
+        $("fireTag").textContent = `${largestFire.fire_id} · ${dateLabel(largestFire.date)}, ${largestFire.date.slice(0, 4)}`;
         const max = Math.max(1, largestFire.modis, largestFire.viirs, largestFire.grid_modis, largestFire.grid_viirs);
         const row = (label, val, color) =>
           `<div class="compare-row"><span>${label}</span><div class="compare-track"><div class="compare-fill" style="width:${val / max * 100}%;background:${color}"></div></div><span class="compare-number">${val}</span></div>`;
@@ -1270,7 +1368,7 @@
         const url = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
         const link = document.createElement("a");
         link.href = url;
-        link.download = `hatay-firms-${$("dateFilter").value === "all" ? "all-dates" : $("dateFilter").value}.csv`;
+        link.download = `turkiye-firms-${$("dateFilter").value === "all" ? "all-dates" : $("dateFilter").value}.csv`;
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
@@ -1287,38 +1385,6 @@
         $("staticToggle").checked = false;
         render();
       });
-      let liveData = null;
-      async function showLive() {
-        const status = $("liveStatus");
-        liveLayer.clearLayers();
-        if (!$("liveToggle").checked) { map.removeLayer(liveLayer); status.textContent = ""; return; }
-        status.textContent = "Loading…";
-        try {
-          {
-            const r = await fetch("data/live.json?t=" + Date.now(), { cache: "no-store" });
-            if (!r.ok) throw new Error(r.status);
-            liveData = await r.json();
-          }
-        } catch (e) {
-          status.textContent = "Live data is not available yet.";
-          return;
-        }
-        const box = boundaryLayer.getBounds();
-        const pts = (liveData.points || []).filter(p => box.contains([p.lat, p.lon]));
-        pts.forEach(p => {
-          L.circleMarker([p.lat, p.lon], {
-            radius: 7, pane: "livePane", color: "#ff2d2d", weight: 3,
-            fillColor: sensorColors[p.sensor], fillOpacity: .9
-          }).bindPopup(`<strong>LIVE · ${p.sensor}</strong><br>${p.date} ${String(p.time).replace(/(\d\d)(\d\d)/, "$1:$2")} UTC<br>Confidence: ${p.confidence_level}` +
-            (p.frp != null ? `<br>Fire power: ${p.frp} MW` : "")).addTo(liveLayer);
-        });
-        liveLayer.addTo(map);
-        const g = liveData.meta && liveData.meta.generated;
-        status.textContent = (pts.length ? `${pts.length} live detection${pts.length === 1 ? "" : "s"} in Hatay (last ${(liveData.meta.live && liveData.meta.live.days) || 7} days)` : "No new fire detected in Hatay recently") +
-          (g ? ` · updated ${new Date(g).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}` : "");
-      }
-      $("liveToggle").addEventListener("change", showLive);
-      setInterval(() => { if ($("liveToggle").checked) { liveData = null; showLive(); } }, 10 * 60 * 1000);
       $("zoomIn").addEventListener("click", () => map.zoomIn());
       $("zoomOut").addEventListener("click", () => map.zoomOut());
       $("zoomReset").addEventListener("click", () => map.fitBounds(mapBounds.pad(.04)));
@@ -1328,12 +1394,50 @@
       });
       $("downloadButton").addEventListener("click", downloadCsv);
 
-      $("methodExtra").textContent = "Static heat sources (FIRMS type 2, e.g. the factory north of İskenderun) were removed. " +
-        `On the shared 1 km grid the MODIS–VIIRS gap shrinks from ${ratio(H.points.filter(p=>p.category==="vegetation"&&p.sensor==="VIIRS").length, H.points.filter(p=>p.category==="vegetation"&&p.sensor==="MODIS").length)} → ` +
-        `${ratio(H.grid.filter(c=>c.seen_by!=="MODIS").length, H.grid.filter(c=>c.seen_by!=="VIIRS").length)}. ` +
-        `In total ${H.fireCount} fire groups, ${H.matchedCount} of them seen by both sensors.`;
-      updateLargestFireCard();
-      render();
+      function updateMethod() {
+        const veg = H.points.filter(p => p.category === "vegetation");
+        $("methodExtra").textContent = "Static heat sources (FIRMS type 2, e.g. factories, power plants, gas flares) were removed. " +
+          `In this period the MODIS–VIIRS gap shrinks from ${ratio(veg.filter(p => p.sensor === "VIIRS").length, veg.filter(p => p.sensor === "MODIS").length)} on raw detections → ` +
+          `${ratio(H.grid.filter(c => c.seen_by !== "MODIS").length, H.grid.filter(c => c.seen_by !== "VIIRS").length)} on the shared 1 km grid. ` +
+          `In total ${H.fireCount} fire groups, ${H.matchedCount} of them seen by both sensors.`;
+      }
+
+      async function setRange(key, refresh) {
+        const d = (await loadBase(key)) || EMPTY_DATA;
+        const missing = d === EMPTY_DATA;
+        const prev = new Set(refresh ? H.points.map(keyOfPoint) : []);
+        rangeKey = key;
+        DATA = d;
+        H = ranged(d, key);
+        largestFire = H.fireGroups[0] || null;
+        newKeys = refresh ? new Set(H.points.filter(p => !prev.has(keyOfPoint(p))).map(keyOfPoint)) : new Set();
+        document.querySelectorAll(".range-option").forEach(btn => btn.setAttribute("aria-pressed", String(btn.dataset.range === key)));
+        $("eyebrow").textContent = "NASA FIRMS · " + RANGES[key].label;
+        $("footPeriod").textContent = "Period: " + RANGES[key].label;
+        const latest = d.meta && d.meta.latest_date;
+        const gen = d.meta && d.meta.generated;
+        $("subtitle").textContent = "Active fire detections by the MODIS and VIIRS satellites over Türkiye" +
+          (key === "live" && gen ? ` · updated ${new Date(gen).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}` : "") +
+          (key !== "live" && latest ? ` · data up to ${latest}` : "");
+        updateMethod();
+        updateLargestFireCard();
+        render();
+        if (!H.points.length) {
+          const cut = cutoffISO(RANGES[key].days);
+          $("emptyState").innerHTML = missing ? "This data is not available yet.<br>Please try again later."
+            : key === "live" ? "No vegetation fire detected in Türkiye in the last 7 days.<br>This view refreshes automatically."
+            : (latest && latest < cut) ? `No data in this period yet.<br>The archive currently ends on ${latest}.`
+            : "No detections in this period.";
+        } else {
+          $("emptyState").innerHTML = "No detections match these filters.<br>Loosen the filters and try again.";
+        }
+        try { history.replaceState(null, "", "?p=" + key); } catch (e) { /* ignore */ }
+        clearInterval(liveTimer);
+        if (key === "live") liveTimer = setInterval(() => setRange("live", true), 10 * 60 * 1000);
+      }
+      document.querySelectorAll(".range-option").forEach(btn => btn.addEventListener("click", () => setRange(btn.dataset.range, false)));
+      await setRange(rangeKey, false);
+
     })();
 </script>
 </body>

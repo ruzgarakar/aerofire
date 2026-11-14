@@ -1,0 +1,7 @@
+AEROFIRE - TURKIYE CANLI + BELEN (kurulum)
+1) Zip'i ac. web/index.html ve web/belen.html dosyalarini repodaki web/ klasorune koy (eski index.html'in yedegini al!).
+2) .github, scripts, data klasorlerini repo ana dizinine kopyala. Commit + push.
+3) Akay: Settings > Secrets > MAP_KEY (anahtar kodda/mesajda OLMAYACAK). Settings > Actions > General > Workflow permissions = Read and write.
+4) Actions > "archive-update" > Run workflow (bitince) > "live-update" > Run workflow.
+5) Gizli pencerede siteyi ac: Last year / Live butonlarini dene. Belen sekmesi ustte.
+Notlar: NASA NRT ~3 saat gecikmeli. Eski veri 31 Agu 2026'da bitiyor; Eyl-Kas arasi bosluk NRT'den doldurulmaya calisilir, dolmazsa sayfa bosluk mesaji gosterir. Akay'in Turkce index.html'i ile web/index.html'in USTUNE YAZMA.
