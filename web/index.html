@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,14 +15,14 @@
       if (themeSwitch) {
         themeSwitch.setAttribute("aria-checked", String(theme === "dark"));
         document.getElementById("themeMode").textContent = manualTheme
-          ? "Elle seçildi"
-          : "Bilgisayar temasını izliyor";
+          ? "Set manually"
+          : "Following your device theme";
       }
     };
     applySystemColorScheme(systemColorScheme);
     systemColorScheme.addEventListener("change", applySystemColorScheme);
 </script>
-  <title>Hatay Yangın Gözlem Paneli — NASA Space Apps</title>
+  <title>Hatay Wildfire Observation Panel — NASA Space Apps</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
@@ -658,174 +658,174 @@
 </head>
 <body>
   <div class="app">
-    <aside class="sidebar" aria-label="Harita ve filtre seçenekleri">
+    <aside class="sidebar" aria-label="Map and filter options">
       <div class="brand">
-        <div><div class="brand-title">AeroFire</div><div class="brand-sub">Uydu gözlem paneli</div></div>
+        <div><div class="brand-title">AeroFire</div><div class="brand-sub">Satellite observation panel</div></div>
       </div>
 
-      <nav class="primary-nav" aria-label="Ana menü">
+      <nav class="primary-nav" aria-label="Main menu">
         <h2 class="side-label">Panel</h2>
-        <a class="primary-link" href="#overview" aria-current="page"><span class="nav-symbol" aria-hidden="true">▦</span>Genel bakış</a>
-        <a class="primary-link" href="#map"><span class="nav-symbol" aria-hidden="true">⌖</span>Yangın haritası</a>
-        <a class="primary-link" href="#analysis"><span class="nav-symbol" aria-hidden="true">▥</span>Zaman çizelgesi</a>
-        <a class="primary-link" href="#sources"><span class="nav-symbol" aria-hidden="true">ⓘ</span>Veri ve yöntem</a>
+        <a class="primary-link" href="#overview" aria-current="page"><span class="nav-symbol" aria-hidden="true">▦</span>Overview</a>
+        <a class="primary-link" href="#map"><span class="nav-symbol" aria-hidden="true">⌖</span>Fire map</a>
+        <a class="primary-link" href="#analysis"><span class="nav-symbol" aria-hidden="true">▥</span>Timeline</a>
+        <a class="primary-link" href="#sources"><span class="nav-symbol" aria-hidden="true">ⓘ</span>Data and method</a>
       </nav>
 
       <section>
-        <h2 class="side-label">Harita görünümü</h2>
-        <div class="layer-list" role="group" aria-label="Harita katmanını seçin">
+        <h2 class="side-label">Map view</h2>
+        <div class="layer-list" role="group" aria-label="Choose a map layer">
           <button class="layer-option" type="button" data-layer="points" aria-pressed="true">
             <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><circle cx="6" cy="7" r="2" fill="currentColor"/><circle cx="13.5" cy="5" r="1.5" fill="currentColor"/><circle cx="11" cy="13" r="2.5" fill="currentColor"/><circle cx="16" cy="12" r="1" fill="currentColor"/></svg></span>
-            <span><span class="layer-name">Algılama noktaları</span><span class="layer-detail">Her uydu gözlemi</span></span>
+            <span><span class="layer-name">Detection points</span><span class="layer-detail">Every satellite observation</span></span>
           </button>
           <button class="layer-option" type="button" data-layer="harmonized" aria-pressed="false">
             <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><rect x="3" y="3" width="6" height="6" fill="#ff855d"/><rect x="11" y="3" width="6" height="6" fill="#FFB020"/><rect x="3" y="11" width="6" height="6" fill="#FFB020"/><rect x="11" y="11" width="6" height="6" fill="#69b9e8"/></svg></span>
-            <span><span class="layer-name">1 km uyumlaştırılmış ızgara</span><span class="layer-detail">Her karede hangi sensör</span></span>
+            <span><span class="layer-name">Harmonized 1 km grid</span><span class="layer-detail">Which sensor saw each square</span></span>
           </button>
           <button class="layer-option" type="button" data-layer="density" aria-pressed="false">
             <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><circle cx="10" cy="10" r="2" fill="currentColor"/><circle cx="10" cy="10" r="5" stroke="currentColor"/><circle cx="10" cy="10" r="8" stroke="currentColor" opacity=".55"/></svg></span>
-            <span><span class="layer-name">Yoğunluk haritası</span><span class="layer-detail">Algılama kümeleri</span></span>
+            <span><span class="layer-name">Density map</span><span class="layer-detail">Detection clusters</span></span>
           </button>
           <button class="layer-option" type="button" data-layer="grid" aria-pressed="false">
             <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><path d="M3 3h6v6H3zM11 3h6v6h-6zM3 11h6v6H3zM11 11h6v6h-6z" stroke="currentColor"/></svg></span>
-            <span><span class="layer-name">0,1° grid hücreleri</span><span class="layer-detail">Hücre başına algılama</span></span>
+            <span><span class="layer-name">0.1° grid cells</span><span class="layer-detail">Detections per cell</span></span>
           </button>
           <button class="layer-option" type="button" data-layer="compare" aria-pressed="false">
             <span class="layer-icon" aria-hidden="true"><svg viewBox="0 0 20 20" fill="none"><circle cx="7" cy="10" r="4" stroke="#f08a62" stroke-width="2"/><circle cx="13" cy="10" r="4" stroke="#72bfe9" stroke-width="2"/></svg></span>
-            <span><span class="layer-name">Sensör karşılaştırma</span><span class="layer-detail">MODIS ve VIIRS</span></span>
+            <span><span class="layer-name">Sensor comparison</span><span class="layer-detail">MODIS and VIIRS</span></span>
           </button>
         </div>
       </section>
 
       <div class="side-divider"></div>
       <section class="filter-section">
-        <h2 class="side-label">Gözlem filtreleri</h2>
+        <h2 class="side-label">Observation filters</h2>
         <div class="filters">
           <div class="field">
-            <label for="dateFilter">Gözlem günü</label>
+            <label for="dateFilter">Observation day</label>
             <select id="dateFilter">
-              <option value="all">Tüm tarihler</option>
-              <option value="2020-10-08">8 Ekim 2020</option>
-              <option value="2020-10-09">9 Ekim 2020</option>
-              <option value="2020-10-10">10 Ekim 2020</option>
-              <option value="2020-10-11">11 Ekim 2020</option>
-              <option value="2020-10-12">12 Ekim 2020</option>
+              <option value="all">All dates</option>
+              <option value="2020-10-08">Oct 8, 2020</option>
+              <option value="2020-10-09">Oct 9, 2020</option>
+              <option value="2020-10-10">Oct 10, 2020</option>
+              <option value="2020-10-11">Oct 11, 2020</option>
+              <option value="2020-10-12">Oct 12, 2020</option>
             </select>
           </div>
           <div class="field">
-            <label for="sensorFilter">Uydu sensörü</label>
+            <label for="sensorFilter">Satellite sensor</label>
             <select id="sensorFilter">
-              <option value="all">Tüm sensörler</option>
+              <option value="all">All sensors</option>
               <option value="VIIRS">VIIRS</option>
               <option value="MODIS">MODIS</option>
             </select>
           </div>
           <div class="field">
-            <label for="confidenceFilter">Güven düzeyi</label>
+            <label for="confidenceFilter">Confidence level</label>
             <select id="confidenceFilter">
-              <option value="all">Tüm seviyeler</option>
-              <option value="nominal">Nominal ve üzeri</option>
-              <option value="high">Yüksek</option>
+              <option value="all">All levels</option>
+              <option value="nominal">Nominal and above</option>
+              <option value="high">High</option>
             </select>
-            <div class="range-meta">MODIS: ≥50 / ≥80 · VIIRS: nominal+ / yüksek</div>
+            <div class="range-meta">MODIS: ≥50 / ≥80 · VIIRS: nominal+ / high</div>
           </div>
           <div class="field">
-            <label class="check-row"><input id="boundaryToggle" type="checkbox" checked> Hatay il sınırını göster</label>
-            <label class="check-row check-gap"><input id="staticToggle" type="checkbox"> Yangın olmayan noktaları göster (sabit ısı + deniz)</label>
+            <label class="check-row"><input id="boundaryToggle" type="checkbox" checked> Show Hatay province boundary</label>
+            <label class="check-row check-gap"><input id="staticToggle" type="checkbox"> Show non-fire points (static heat + offshore)</label>
           </div>
         </div>
-        <div class="legend" aria-label="Sensör renkleri">
+        <div class="legend" aria-label="Sensor colors">
           <span class="legend-item"><i class="dot" style="background:#ff855d"></i>MODIS</span>
           <span class="legend-item"><i class="dot" style="background:#69b9e8"></i>VIIRS</span>
-          <span class="legend-item"><i class="dot dot-ring"></i>İkisinde</span>
-          <span class="legend-item"><i class="dot" style="background:#8A8F98"></i>Yangın değil</span>
+          <span class="legend-item"><i class="dot dot-ring"></i>Both</span>
+          <span class="legend-item"><i class="dot" style="background:#8A8F98"></i>Not a fire</span>
         </div>
       </section>
-      <div class="side-note"><strong>Veri notu</strong><br>Her nokta bir uydu algılamasını gösterir; tekil yangın veya yangın alanı sayısı değildir. Uydu geçişleri aynı olayı birden fazla kez algılayabilir.</div>
+      <div class="side-note"><strong>Data note</strong><br>Each point is one satellite detection; it is not a count of individual fires or burned area. Satellite passes can detect the same event more than once.</div>
     </aside>
 
     <main class="main">
       <header class="topbar" id="overview">
         <div>
-          <div class="eyebrow">NASA FIRMS · 8–12 Ekim 2020</div>
-          <h1>Hatay yangın gözlemleri</h1>
-          <p class="subtitle">MODIS ve VIIRS uydularının Hatay’daki aktif yangın algılamaları</p>
+          <div class="eyebrow">NASA FIRMS · Oct 8–12, 2020</div>
+          <h1>Hatay wildfire detections</h1>
+          <p class="subtitle">Active fire detections by the MODIS and VIIRS satellites over Hatay</p>
         </div>
         <div class="top-actions">
-          <div class="theme-control" role="group" aria-label="Görünüm teması">
-            <span class="theme-choice">Açık</span>
-            <button class="theme-switch" id="themeToggle" type="button" role="switch" aria-label="Özel temayı etkinleştir" aria-checked="false" aria-describedby="themeMode">
+          <div class="theme-control" role="group" aria-label="Display theme">
+            <span class="theme-choice">Light</span>
+            <button class="theme-switch" id="themeToggle" type="button" role="switch" aria-label="Enable custom theme" aria-checked="false" aria-describedby="themeMode">
               <span class="theme-switch-track" aria-hidden="true"><span class="theme-switch-thumb"></span></span>
             </button>
-            <span class="theme-choice">Özel tema</span>
-            <span class="theme-mode" id="themeMode">Bilgisayar temasını izliyor</span>
+            <span class="theme-choice">Custom theme</span>
+            <span class="theme-mode" id="themeMode">Following your device theme</span>
           </div>
-          <button class="action" id="resetButton" type="button">Filtreleri sıfırla</button>
-          <button class="action primary" id="downloadButton" type="button">Görünen veriyi indir ↓</button>
+          <button class="action" id="resetButton" type="button">Reset filters</button>
+          <button class="action primary" id="downloadButton" type="button">Download visible data ↓</button>
         </div>
       </header>
 
-      <section class="metrics" aria-label="Filtrelenmiş veri özeti">
-        <article class="metric"><div class="metric-head">Toplam algılama <span class="metric-symbol">◎</span></div><div class="metric-value" id="totalMetric">—</div><div class="metric-foot" id="dateMetric">Seçili zaman aralığında</div></article>
-        <article class="metric"><div class="metric-head">VIIRS algılaması <span class="metric-symbol value-blue">●</span></div><div class="metric-value value-blue" id="viirsMetric">—</div><div class="metric-foot" id="viirsFoot">Toplamın payı</div></article>
-        <article class="metric"><div class="metric-head">MODIS algılaması <span class="metric-symbol value-orange">●</span></div><div class="metric-value value-orange" id="modisMetric">—</div><div class="metric-foot" id="modisFoot">Toplamın payı</div></article>
-        <article class="metric"><div class="metric-head">En yüksek FRP <span class="metric-symbol value-gold">↗</span></div><div class="metric-value value-gold" id="frpMetric">—</div><div class="metric-foot">Yangın radyatif gücü · MW</div></article>
+      <section class="metrics" aria-label="Filtered data summary">
+        <article class="metric"><div class="metric-head">Total detections <span class="metric-symbol">◎</span></div><div class="metric-value" id="totalMetric">—</div><div class="metric-foot" id="dateMetric">In the selected period</div></article>
+        <article class="metric"><div class="metric-head">VIIRS detections <span class="metric-symbol value-blue">●</span></div><div class="metric-value value-blue" id="viirsMetric">—</div><div class="metric-foot" id="viirsFoot">Share of total</div></article>
+        <article class="metric"><div class="metric-head">MODIS detections <span class="metric-symbol value-orange">●</span></div><div class="metric-value value-orange" id="modisMetric">—</div><div class="metric-foot" id="modisFoot">Share of total</div></article>
+        <article class="metric"><div class="metric-head">Peak FRP <span class="metric-symbol value-gold">↗</span></div><div class="metric-value value-gold" id="frpMetric">—</div><div class="metric-foot">Fire radiative power · MW</div></article>
       </section>
 
-      <section class="map-card" id="map" aria-label="Etkileşimli Hatay haritası">
+      <section class="map-card" id="map" aria-label="Interactive map of Hatay">
         <div class="map-head">
           <div>
-            <div class="map-heading"><span class="live-dot"></span><span id="mapTitle">Uydu algılama noktaları</span></div>
-            <div class="map-meta" id="mapMeta">Noktaya tıklayarak gözlem ayrıntılarını inceleyin</div>
+            <div class="map-heading"><span class="live-dot"></span><span id="mapTitle">Satellite detection points</span></div>
+            <div class="map-meta" id="mapMeta">Click a point to see observation details</div>
           </div>
-          <div class="map-tools" aria-label="Harita yakınlaştırma">
-            <button class="zoom-btn" id="zoomOut" type="button" aria-label="Uzaklaştır">−</button>
-            <button class="zoom-btn" id="zoomIn" type="button" aria-label="Yakınlaştır">+</button>
-            <button class="zoom-btn" id="zoomReset" type="button" aria-label="Haritayı ortala">⌂</button>
+          <div class="map-tools" aria-label="Map zoom">
+            <button class="zoom-btn" id="zoomOut" type="button" aria-label="Zoom out">−</button>
+            <button class="zoom-btn" id="zoomIn" type="button" aria-label="Zoom in">+</button>
+            <button class="zoom-btn" id="zoomReset" type="button" aria-label="Center the map">⌂</button>
           </div>
         </div>
         <div class="map-stage" id="mapStage">
-          <div id="leafletMap" role="application" aria-label="Hatay il sınırı ve yangın algılamaları haritası"></div>
-          <div class="map-error" id="mapError" hidden>Harita yüklenemedi. Harita altlığı için internet bağlantınızı kontrol edip sayfayı yenileyin.</div>
-          <div class="empty-state" id="emptyState" hidden>Bu filtrelerle eşleşen algılama yok.<br>Filtreleri gevşetip yeniden deneyin.</div>
+          <div id="leafletMap" role="application" aria-label="Map of the Hatay province boundary and fire detections"></div>
+          <div class="map-error" id="mapError" hidden>The map could not be loaded. Check your internet connection for the base map and refresh the page.</div>
+          <div class="empty-state" id="emptyState" hidden>No detections match these filters.<br>Loosen the filters and try again.</div>
           <div class="map-legend" id="mapLegend"><span class="legend-item"><i class="dot" style="background:#ff855d"></i>MODIS</span><span class="legend-item"><i class="dot" style="background:#69b9e8"></i>VIIRS</span></div>
         </div>
       </section>
 
-      <section class="below-grid" id="analysis" aria-label="Veri grafikleri ve bulgular">
+      <section class="below-grid" id="analysis" aria-label="Data charts and findings">
         <article class="info-card">
-          <div class="card-title">Günlük algılama sayısı <span class="card-tag">filtrelere göre</span></div>
-          <div class="chart" id="dailyChart" role="img" aria-label="Günlük algılama grafiği"></div>
+          <div class="card-title">Detections per day <span class="card-tag">per filters</span></div>
+          <div class="chart" id="dailyChart" role="img" aria-label="Daily detections chart"></div>
         </article>
         <article class="info-card">
-          <div class="card-title">Sensörlerin kapsadığı gözlemler <span class="card-tag">MODIS / VIIRS</span></div>
+          <div class="card-title">Observations covered by each sensor <span class="card-tag">MODIS / VIIRS</span></div>
           <div class="compare" id="sensorChart"></div>
-          <div class="takeaway" id="takeaway">Veri özeti yükleniyor…</div>
+          <div class="takeaway" id="takeaway">Loading summary…</div>
         </article>
       </section>
 
-      <section class="below-grid" id="harmonization" aria-label="Uyumlaştırma sonuçları">
+      <section class="below-grid" id="harmonization" aria-label="Harmonization results">
         <article class="info-card">
-          <div class="card-title">Uyumlaştırma <span class="card-tag" id="ratioTag">—</span></div>
+          <div class="card-title">Harmonization <span class="card-tag" id="ratioTag">—</span></div>
           <div class="ratio-row">
-            <div><div class="metric-head">Ham oran</div><div class="metric-value" id="rawRatio">—</div></div>
+            <div><div class="metric-head">Raw ratio</div><div class="metric-value" id="rawRatio">—</div></div>
             <div class="ratio-arrow" aria-hidden="true">→</div>
-            <div><div class="metric-head">Izgara oranı</div><div class="metric-value value-gold" id="gridRatio">—</div></div>
+            <div><div class="metric-head">Grid ratio</div><div class="metric-value value-gold" id="gridRatio">—</div></div>
           </div>
           <div class="compare" id="cellChart"></div>
-          <div class="metric-foot ratio-foot">VIIRS / MODIS. Ham = nokta sayısı, ızgara = günlük 1 km kare. Yalnızca gün filtresi uygulanır.</div>
+          <div class="metric-foot ratio-foot">VIIRS / MODIS. Raw = point count, grid = daily 1 km squares. Only the day filter applies.</div>
         </article>
         <article class="info-card">
-          <div class="card-title"><span id="fireTitle">En büyük yangın grubu</span> <span class="card-tag" id="fireTag">—</span></div>
+          <div class="card-title"><span id="fireTitle">Largest fire group</span> <span class="card-tag" id="fireTag">—</span></div>
           <div class="compare" id="fireChart"></div>
           <div class="takeaway" id="fireTakeaway">—</div>
         </article>
       </section>
 
       <section class="method" id="sources">
-        <strong>Nasıl okunmalı?</strong> FIRMS aktif yangın / termal anomali algılamalarını kaydeder. MODIS ile VIIRS’in uzamsal çözünürlükleri ve geçiş zamanları farklı olduğundan algılama sayıları doğrudan yangın sayısı olarak yorumlanmamalıdır. FRP (MW), algılanan yangının radyatif enerji çıkışına ilişkin bir ölçümdür; hasar veya yanmış alan ölçüsü değildir. <span id="methodExtra"></span>
+        <strong>How to read this</strong> FIRMS records active fire / thermal anomaly detections. Because MODIS and VIIRS differ in spatial resolution and overpass times, detection counts must not be read directly as a number of fires. FRP (MW) measures the radiative energy output of a detected fire; it is not a measure of damage or burned area. <span id="methodExtra"></span>
       </section>
-      <footer class="footer"><span>Kaynak: NASA FIRMS arşiv verisi · MODIS &amp; VIIRS · Hatay, Türkiye</span><span>Harita altlığı internet bağlantısı gerektirir · Veri dönemi: 08–12.10.2020</span></footer>
+      <footer class="footer"><span>Source: NASA FIRMS archive data · MODIS &amp; VIIRS · Hatay, Türkiye</span><span>Base map needs an internet connection · Data period: Oct 8–12, 2020</span></footer>
     </main>
   </div>
 
@@ -847,7 +847,7 @@
         console.error(err);
         document.body.insertAdjacentHTML("afterbegin",
           '<div style="position:fixed;z-index:99999;top:0;left:0;right:0;padding:12px 16px;background:#b3261e;color:#fff;font:14px sans-serif">' +
-          'Veri yüklenemedi (data/points.json). Sayfayı Live Server ya da GitHub Pages ile açın. Ayrıntı: ' + String(err.message) + '</div>');
+          'Data could not be loaded (data/points.json). Open the page with Live Server or GitHub Pages. Details: ' + String(err.message) + '</div>');
         return;
       }
 
@@ -863,11 +863,11 @@
       const FEATURED_DATE = "2020-10-09";
 
       const layerNames = {
-        points:     ["Uydu algılama noktaları", "Noktaya tıklayarak gözlem ayrıntılarını inceleyin"],
-        harmonized: ["1 km uyumlaştırılmış ızgara", "Günlük 1 km kareler · turuncu: sadece MODIS, mavi: sadece VIIRS, sarı: ikisi · yalnızca gün filtresi"],
-        density:    ["Algılama yoğunluğu", "Renk yoğunluğu, 0,1° hücrelerdeki gözlem sayısını gösterir"],
-        grid:       ["0,1° grid hücreleri", "Bir hücreyi seçerek MODIS ve VIIRS sayılarını görün"],
-        compare:    ["MODIS ve VIIRS karşılaştırması", "Her iki sensörün algılamaları aynı haritada gösterilir"]
+        points:     ["Satellite detection points", "Click a point to see observation details"],
+        harmonized: ["Harmonized 1 km grid", "Daily 1 km squares · orange: MODIS only, blue: VIIRS only, yellow: both · day filter only"],
+        density:    ["Detection density", "Color intensity shows the number of observations in 0.1° cells"],
+        grid:       ["0.1° grid cells", "Select a cell to see its MODIS and VIIRS counts"],
+        compare:    ["MODIS and VIIRS comparison", "Detections from both sensors on the same map"]
       };
 
       function haversineKm(lat1, lon1, lat2, lon2) {
@@ -925,16 +925,16 @@
       const escapeHTML = v => String(v ?? "").replace(/[&<>"']/g, ch => ({
         "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
       }[ch]));
-      const fmt = (n, d = 0) => new Intl.NumberFormat("tr-TR", { maximumFractionDigits: d }).format(n);
-      const dateLabel = iso => `${Number(iso.slice(8, 10))} Eki`;
+      const fmt = (n, d = 0) => new Intl.NumberFormat("en-US", { maximumFractionDigits: d }).format(n);
+      const dateLabel = iso => `Oct ${Number(iso.slice(8, 10))}`;
       const timeLabel = t => { const p = String(t).padStart(4, "0"); return `${p.slice(0, 2)}:${p.slice(2)}`; };
       const satelliteLabel = s => ({ N: "Suomi-NPP", N20: "NOAA-20", "1": "NOAA-20", J1: "NOAA-20" }[s] || s);
-      const levelLabel = lv => ({ low: "düşük", nominal: "nominal", high: "yüksek", unknown: "?" }[lv] || lv);
+      const levelLabel = lv => ({ low: "low", nominal: "nominal", high: "high", unknown: "?" }[lv] || lv);
       const categoryLabel = c => ({
-        vegetation: "bitki yangını", static: "sabit ısı kaynağı (yangın değil)",
-        offshore: "deniz (yangın değil)", volcano: "volkan", unknown: "bilinmiyor"
+        vegetation: "vegetation fire", static: "static heat source (not a fire)",
+        offshore: "offshore (not a fire)", volcano: "volcano", unknown: "unknown"
       }[c] || c);
-      const ratio = (a, b) => b ? (a / b).toFixed(2).replace(".", ",") + "×" : "—";
+      const ratio = (a, b) => b ? (a / b).toFixed(2) + "×" : "—";
 
       function meetsConfidence(p, level) {
         if (level === "all") return true;
@@ -967,7 +967,7 @@
       });
       L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
         maxZoom: 19, noWrap: true, bounds: WORLD,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap katkıcıları</a> · Sınır: geoBoundaries · Veriler: NASA FIRMS'
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> · Boundary: geoBoundaries · Data: NASA FIRMS'
       }).addTo(map);
 
       const boundaryLayer = L.featureGroup(rings.map(pts => L.polygon(pts, {
@@ -1001,15 +1001,15 @@
         const catTag = p.category === "vegetation" ? "" : ` · <em>${categoryLabel(p.category)}</em>`;
         const conf = p.sensor === "VIIRS"
           ? `${p.confidence_raw} (${levelLabel(p.confidence_level)})`
-          : `%${p.confidence_raw} (${levelLabel(p.confidence_level)})`;
+          : `${p.confidence_raw}% (${levelLabel(p.confidence_level)})`;
         const fireInfo = p.fire_id
-          ? `<br>Yangın grubu: <strong>${p.fire_id}</strong>${p.match_id ? " (iki sensörde)" : ""}`
+          ? `<br>Fire group: <strong>${p.fire_id}</strong>${p.match_id ? " (seen by both sensors)" : ""}`
           : "";
         return `<strong>${escapeHTML(p.sensor)} · ${escapeHTML(satelliteLabel(p.satellite))}</strong>${catTag}<br>` +
-          `Tarih / saat: ${p.date} · ${timeLabel(p.time)} UTC<br>` +
-          `Koordinat: ${fmt(p.lat, 4)}°K, ${fmt(p.lon, 4)}°D<br>` +
-          `Güven: ${escapeHTML(conf)}<br>` +
-          `Parlaklık: ${p.brightness == null ? "—" : fmt(Number(p.brightness), 1) + " K"}<br>` +
+          `Date / time: ${p.date} · ${timeLabel(p.time)} UTC<br>` +
+          `Coordinates: ${fmt(p.lat, 4)}°N, ${fmt(p.lon, 4)}°E<br>` +
+          `Confidence: ${escapeHTML(conf)}<br>` +
+          `Brightness: ${p.brightness == null ? "—" : fmt(Number(p.brightness), 1) + " K"}<br>` +
           `FRP: ${p.frp == null ? "—" : fmt(Number(p.frp), 1) + " MW"}${fireInfo}`;
       }
 
@@ -1065,8 +1065,8 @@
           L.rectangle([[c.lat, c.lon], [c.lat + 0.1, c.lon + 0.1]], {
             pane: "gridPane", color: "#fff", weight: 1, fillColor: fill, fillOpacity: opacity
           }).bindPopup(
-            `<strong>${c.lat.toFixed(1)}°K · ${c.lon.toFixed(1)}°D</strong><br>` +
-            `Toplam: ${c.count}<br>MODIS: ${c.MODIS} · VIIRS: ${c.VIIRS}<br>Kare: 0,1° × 0,1°`
+            `<strong>${c.lat.toFixed(1)}°N · ${c.lon.toFixed(1)}°E</strong><br>` +
+            `Total: ${c.count}<br>MODIS: ${c.MODIS} · VIIRS: ${c.VIIRS}<br>Cell: 0.1° × 0.1°`
           ).addTo(gridLayer);
         }
       }
@@ -1081,8 +1081,8 @@
           L.rectangle([[c.south, c.west], [c.north, c.east]], {
             pane: "gridPane", color, weight: 1, fillColor: color, fillOpacity: .35
           }).bindPopup(
-            `<strong>1 km kare · ${dateLabel(c.date)}</strong><br>` +
-            `Gören: ${c.seen_by === "both" ? "MODIS + VIIRS" : c.seen_by}<br>` +
+            `<strong>1 km square · ${dateLabel(c.date)}</strong><br>` +
+            `Seen by: ${c.seen_by === "both" ? "MODIS + VIIRS" : c.seen_by}<br>` +
             `MODIS: ${c.modis} · VIIRS: ${c.viirs}`
           ).addTo(harmonizedLayer);
         }
@@ -1100,18 +1100,18 @@
         $("viirsMetric").textContent = fmt(viirs);
         $("modisMetric").textContent = fmt(modis);
         $("frpMetric").textContent = total ? `${fmt(peak, 1)} MW` : "—";
-        $("viirsFoot").textContent = `Toplamın %${fmt(viirs / denom * 100, 1)}’i`;
-        $("modisFoot").textContent = `Toplamın %${fmt(modis / denom * 100, 1)}’i`;
-        $("dateMetric").textContent = (date === "all" ? "5 günlük arşiv" : dateLabel(date)) +
-          ` · ${fmt(filteredStatics.length)} yangın-dışı ayıklandı`;
+        $("viirsFoot").textContent = `${fmt(viirs / denom * 100, 1)}% of total`;
+        $("modisFoot").textContent = `${fmt(modis / denom * 100, 1)}% of total`;
+        $("dateMetric").textContent = (date === "all" ? "5-day archive" : dateLabel(date)) +
+          ` · ${fmt(filteredStatics.length)} non-fire removed`;
         $("emptyState").hidden = (total + ($("staticToggle").checked ? filteredStatics.length : 0)) > 0;
 
         const fireIds = new Set(fires.filter(p => p.fire_id).map(p => p.fire_id));
         const matchedIds = new Set(fires.filter(p => p.match_id).map(p => p.match_id));
         $("takeaway").innerHTML = total
-          ? `<strong>Öne çıkan bulgu:</strong> VIIRS, MODIS’in <strong>${ratio(viirs, modis)}</strong> katı algılama kaydetti. ` +
-            `Bu filtrede <strong>${fireIds.size}</strong> yangın grubu, <strong>${matchedIds.size}</strong>’i iki sensörde görüldü.`
-          : "Bu filtrelerle eşleşen yangın algılaması yok. Filtreleri gevşetip yeniden deneyin.";
+          ? `<strong>Key finding:</strong> VIIRS recorded <strong>${ratio(viirs, modis)}</strong> as many detections as MODIS. ` +
+            `With these filters there are <strong>${fireIds.size}</strong> fire groups, <strong>${matchedIds.size}</strong> of them seen by both sensors.`
+          : "No fire detections match these filters. Loosen the filters and try again.";
       }
 
       function updateCharts(rows) {
@@ -1127,7 +1127,7 @@
           const bar = document.createElement("div");
           bar.className = "bar";
           bar.style.height = `${Math.max(3, counts[index] / max * 74)}px`;
-          bar.title = `${dateLabel(date)} 2020: ${counts[index]} algılama`;
+          bar.title = `${dateLabel(date)}, 2020: ${counts[index]} detections`;
           const label = document.createElement("span");
           label.className = "bar-label";
           label.textContent = dateLabel(date);
@@ -1138,8 +1138,8 @@
         const modis = rows.length - viirs;
         const denom = Math.max(1, rows.length);
         $("sensorChart").innerHTML = `
-          <div class="compare-row"><span>VIIRS</span><div class="compare-track"><div class="compare-fill" style="width:${viirs / denom * 100}%;background:${sensorColors.VIIRS}"></div></div><span class="compare-number">${viirs} · %${fmt(viirs / denom * 100, 1)}</span></div>
-          <div class="compare-row"><span>MODIS</span><div class="compare-track"><div class="compare-fill" style="width:${modis / denom * 100}%;background:${sensorColors.MODIS}"></div></div><span class="compare-number">${modis} · %${fmt(modis / denom * 100, 1)}</span></div>`;
+          <div class="compare-row"><span>VIIRS</span><div class="compare-track"><div class="compare-fill" style="width:${viirs / denom * 100}%;background:${sensorColors.VIIRS}"></div></div><span class="compare-number">${viirs} · ${fmt(viirs / denom * 100, 1)}%</span></div>
+          <div class="compare-row"><span>MODIS</span><div class="compare-track"><div class="compare-fill" style="width:${modis / denom * 100}%;background:${sensorColors.MODIS}"></div></div><span class="compare-number">${modis} · ${fmt(modis / denom * 100, 1)}%</span></div>`;
       }
 
       function updateHarmonization(date) {
@@ -1155,48 +1155,48 @@
 
         $("rawRatio").textContent = ratio(v, m);
         $("gridRatio").textContent = ratio(gV, gM);
-        $("ratioTag").textContent = date === "all" ? "5 günlük" : dateLabel(date);
+        $("ratioTag").textContent = date === "all" ? "5 days" : dateLabel(date);
         const row = (label, val, color) =>
-          `<div class="compare-row"><span>${label}</span><div class="compare-track"><div class="compare-fill" style="width:${val / gMax * 100}%;background:${color}"></div></div><span class="compare-number">${val} kare</span></div>`;
+          `<div class="compare-row"><span>${label}</span><div class="compare-track"><div class="compare-fill" style="width:${val / gMax * 100}%;background:${color}"></div></div><span class="compare-number">${val} squares</span></div>`;
         $("cellChart").innerHTML =
           row("VIIRS", gV, sensorColors.VIIRS) +
           row("MODIS", gM, sensorColors.MODIS) +
-          row("İkisi", gBoth, COLORS.matched);
+          row("Both", gBoth, COLORS.matched);
       }
 
       function updateLargestFireCard() {
         if (!largestFire) return;
-        const name = largestFire.date === FEATURED_DATE ? "Belen yangını" : "En büyük yangın grubu";
+        const name = largestFire.date === FEATURED_DATE ? "Belen fire" : "Largest fire group";
         $("fireTitle").textContent = name;
         $("fireTag").textContent = `${largestFire.fire_id} · ${dateLabel(largestFire.date)}`;
         const max = Math.max(1, largestFire.modis, largestFire.viirs, largestFire.grid_modis, largestFire.grid_viirs);
         const row = (label, val, color) =>
           `<div class="compare-row"><span>${label}</span><div class="compare-track"><div class="compare-fill" style="width:${val / max * 100}%;background:${color}"></div></div><span class="compare-number">${val}</span></div>`;
         $("fireChart").innerHTML =
-          row("Ham MODIS", largestFire.modis, sensorColors.MODIS) +
-          row("Ham VIIRS", largestFire.viirs, sensorColors.VIIRS) +
+          row("Raw MODIS", largestFire.modis, sensorColors.MODIS) +
+          row("Raw VIIRS", largestFire.viirs, sensorColors.VIIRS) +
           row("1 km MODIS", largestFire.grid_modis, sensorColors.MODIS) +
           row("1 km VIIRS", largestFire.grid_viirs, sensorColors.VIIRS);
         $("fireTakeaway").innerHTML =
-          `<strong>Ham ${largestFire.modis}/${largestFire.viirs} → ızgara ${largestFire.grid_modis}/${largestFire.grid_viirs}.</strong> ` +
-          `VIIRS pikseli (~375 m) MODIS pikselinden (~1 km) çok daha küçük olduğu için aynı yangın çok daha fazla VIIRS algılaması üretiyor. Ortak 1 km ızgarada fark küçülüyor.`;
+          `<strong>Raw ${largestFire.modis}/${largestFire.viirs} → grid ${largestFire.grid_modis}/${largestFire.grid_viirs}.</strong> ` +
+          `Because a VIIRS pixel (~375 m) is much smaller than a MODIS pixel (~1 km), the same fire produces far more VIIRS detections. On the shared 1 km grid the gap shrinks.`;
       }
 
       function updateLegend() {
         if (activeLayer === "harmonized") {
           $("mapLegend").innerHTML =
-            `<span class="legend-item"><i class="sq" style="background:${sensorColors.MODIS}"></i>Sadece MODIS</span>` +
-            `<span class="legend-item"><i class="sq" style="background:${sensorColors.VIIRS}"></i>Sadece VIIRS</span>` +
-            `<span class="legend-item"><i class="sq" style="background:${COLORS.matched}"></i>İkisi</span>`;
+            `<span class="legend-item"><i class="sq" style="background:${sensorColors.MODIS}"></i>MODIS only</span>` +
+            `<span class="legend-item"><i class="sq" style="background:${sensorColors.VIIRS}"></i>VIIRS only</span>` +
+            `<span class="legend-item"><i class="sq" style="background:${COLORS.matched}"></i>Both</span>`;
         } else if (activeLayer === "density" || activeLayer === "grid") {
           $("mapLegend").innerHTML =
-            '<span class="scale"><span>Az</span><i class="scale-bar"></i><span>Çok</span></span><span>Algılama / hücre</span>';
+            '<span class="scale"><span>Low</span><i class="scale-bar"></i><span>High</span></span><span>Detections / cell</span>';
         } else {
           $("mapLegend").innerHTML =
             `<span class="legend-item"><i class="dot" style="background:${sensorColors.MODIS}"></i>MODIS</span>` +
             `<span class="legend-item"><i class="dot" style="background:${sensorColors.VIIRS}"></i>VIIRS</span>` +
-            `<span class="legend-item"><i class="dot dot-ring"></i>Eşleşen</span>` +
-            ($("staticToggle").checked ? `<span class="legend-item"><i class="dot" style="background:${COLORS.static}"></i>Yangın değil</span>` : "");
+            `<span class="legend-item"><i class="dot dot-ring"></i>Matched</span>` +
+            ($("staticToggle").checked ? `<span class="legend-item"><i class="dot" style="background:${COLORS.static}"></i>Not a fire</span>` : "");
         }
       }
 
@@ -1266,7 +1266,7 @@
         const url = URL.createObjectURL(new Blob(["\uFEFF", csv], { type: "text/csv;charset=utf-8" }));
         const link = document.createElement("a");
         link.href = url;
-        link.download = `hatay-firms-${$("dateFilter").value === "all" ? "tum-tarihler" : $("dateFilter").value}.csv`;
+        link.download = `hatay-firms-${$("dateFilter").value === "all" ? "all-dates" : $("dateFilter").value}.csv`;
         link.click();
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
@@ -1292,10 +1292,10 @@
       });
       $("downloadButton").addEventListener("click", downloadCsv);
 
-      $("methodExtra").textContent = "Sabit ısı kaynakları (FIRMS tip 2, örn. İskenderun kuzeyindeki fabrika) çıkarılmıştır. " +
-        `Ortak 1 km ızgarada MODIS–VIIRS farkı ${ratio(H.points.filter(p=>p.category==="vegetation"&&p.sensor==="VIIRS").length, H.points.filter(p=>p.category==="vegetation"&&p.sensor==="MODIS").length)} → ` +
-        `${ratio(H.grid.filter(c=>c.seen_by!=="MODIS").length, H.grid.filter(c=>c.seen_by!=="VIIRS").length)} aralığına iner. ` +
-        `Toplam ${H.fireCount} yangın grubu, ${H.matchedCount}'i iki sensörde de görüldü.`;
+      $("methodExtra").textContent = "Static heat sources (FIRMS type 2, e.g. the factory north of İskenderun) were removed. " +
+        `On the shared 1 km grid the MODIS–VIIRS gap shrinks from ${ratio(H.points.filter(p=>p.category==="vegetation"&&p.sensor==="VIIRS").length, H.points.filter(p=>p.category==="vegetation"&&p.sensor==="MODIS").length)} → ` +
+        `${ratio(H.grid.filter(c=>c.seen_by!=="MODIS").length, H.grid.filter(c=>c.seen_by!=="VIIRS").length)}. ` +
+        `In total ${H.fireCount} fire groups, ${H.matchedCount} of them seen by both sensors.`;
       updateLargestFireCard();
       render();
     })();
