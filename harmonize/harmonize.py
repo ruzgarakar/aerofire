@@ -1,29 +1,3 @@
-"""AeroFire - MODIS ve VIIRS uyumlaştırma.
-
-Girdi : data/processed/hatay_points.csv  (Akay'ın scripti)
-Çıktı : web/data/points.json             (Ceyhun'un haritası)
-Format: docs/VERI_FORMATI.md
-
-Çalıştırma: python harmonize/harmonize.py
-            python harmonize/harmonize.py --input baska.csv --km 1.5 --grid-km 1.0
-
-Sadece Python standart kütüphanesi kullanılır.
-
-Kurallar:
-1. Ortak güven ölçeği (low / nominal / high)
-   - MODIS 0-100 sayısı: 0-29 low, 30-79 nominal, 80-100 high
-     (MODIS Collection 6 aktif yangın kullanıcı kılavuzundaki sınıflar)
-   - VIIRS: l -> low, n -> nominal, h -> high
-2. Aynı yangın: aynı gün (UTC) ve aralarında MATCH_KM km'den az mesafe olan
-   noktalar zincir halinde birleşir ve aynı fire_id'yi alır.
-   Bir grupta hem MODIS hem VIIRS varsa o yangın "iki sensörde de eşleşti" sayılır
-   (match_id = fire_id).
-3. Ortak ızgara: MODIS pikseli ~1 km, VIIRS pikseli ~375 m. Aynı yangın VIIRS'te
-   daha çok noktayla görünür. Bu yüzden iki sensörü aynı ~1 km'lik karelere
-   oturtup her gün için "bu kare yandı mı, hangi sensör gördü" diye sayıyoruz.
-   Bir karede o gün en az bir bitki yangını noktası varsa kare o sensör için "yanan" sayılır.
-"""
-
 import argparse
 import csv
 import json
@@ -61,7 +35,6 @@ TYPE_NAMES = {"0": "vegetation", "1": "volcano", "2": "static", "3": "offshore"}
 
 
 def guess_sensor(p):
-    """Sensor sütunu boşsa uydu adından tahmin eder (Terra/Aqua = MODIS, diğerleri VIIRS)."""
     sensor = p.get("sensor", "").upper()
     if sensor:
         return sensor
@@ -74,7 +47,6 @@ def guess_sensor(p):
 
 
 def load_points(path):
-    """CSV'yi okur, sütun adlarını düzeltir, her satırı bir sözlük olarak döndürür."""
     points = []
     skipped = 0
     with open(path, encoding="utf-8-sig", newline="") as f:
@@ -107,7 +79,6 @@ def load_points(path):
 
 
 def normalize_confidence(point):
-    """MODIS 0-100 ve VIIRS l/n/h değerini ortak low/nominal/high ölçeğine çevirir."""
     raw = str(point.get("confidence", "")).strip().lower()
     if point["sensor"] == "VIIRS":
         return {"l": "low", "n": "nominal", "h": "high",
@@ -124,7 +95,6 @@ def normalize_confidence(point):
 
 
 def distance_km(a, b):
-    """İki nokta arasındaki mesafe (haversine), km."""
     r = 6371.0
     lat1, lon1 = math.radians(a["latitude"]), math.radians(a["longitude"])
     lat2, lon2 = math.radians(b["latitude"]), math.radians(b["longitude"])
@@ -134,12 +104,6 @@ def distance_km(a, b):
 
 
 def match_fires(all_points, max_km=MATCH_KM):
-    """Aynı gün ve max_km içindeki noktaları zincir halinde gruplar, fire_id verir.
-
-    Sadece bitki örtüsü yangınları (type 0) eşleştirilir; sabit ısı kaynakları
-    (fabrika vb., type 2) ve denizdeki kaynaklar (type 3) yangın sayılmaz.
-    Dönen değer: (grup sayısı, iki sensörde de görülen grup sayısı)
-    """
     for p in all_points:
         p["fire_id"] = None
         p["match_id"] = None
@@ -188,11 +152,6 @@ def match_fires(all_points, max_km=MATCH_KM):
 
 
 def build_grid(points, grid_km=GRID_KM):
-    """Bitki yangını noktalarını gün bazında ~grid_km'lik karelere yerleştirir.
-
-    Her kare için: tarih, köşe koordinatları, hangi sensör(ler) görmüş,
-    karede kaç MODIS / VIIRS noktası var ve hangi yangın grubuna ait.
-    """
     lat_step = grid_km / KM_PER_DEG_LAT
     lon_step = grid_km / (KM_PER_DEG_LAT * math.cos(math.radians(GRID_REF_LAT)))
 
@@ -234,12 +193,10 @@ def build_grid(points, grid_km=GRID_KM):
 
 
 def ratio(a, b):
-    """a / b, iki basamak. b sıfırsa None (JSON'da null)."""
     return round(a / b, 2) if b else None
 
 
 def grid_counts(grid):
-    """Izgaradan sayıları çıkarır. 'both' kareler hem MODIS'e hem VIIRS'e sayılır."""
     modis = sum(1 for c in grid if c["seen_by"] in ("MODIS", "both"))
     viirs = sum(1 for c in grid if c["seen_by"] in ("VIIRS", "both"))
     both = sum(1 for c in grid if c["seen_by"] == "both")
@@ -247,7 +204,6 @@ def grid_counts(grid):
 
 
 def summarize_fires(points, grid):
-    """Her yangın grubu için kısa özet: tarih, merkez, ham nokta ve ızgara sayıları."""
     fires = {}
     for p in points:
         if not p["fire_id"]:
@@ -284,7 +240,6 @@ def summarize_fires(points, grid):
 
 
 def build_output(points, grid, fires, meta_extra):
-    """docs/VERI_FORMATI.md'deki points.json yapısını oluşturur."""
     counts = Counter(p["sensor"] for p in points if p["category"] == "vegetation")
     excluded = Counter(p["category"] for p in points if p["category"] != "vegetation")
     dates = sorted(p["acq_date"] for p in points if p.get("acq_date"))
