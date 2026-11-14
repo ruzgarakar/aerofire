@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AeroFire Live - Türkiye</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{color-scheme:dark;--bg:#0b1014;--panel:#11191f;--line:#27343c;--muted:#91a0a8;--text:#edf2ef;--orange:#ff744f;--gold:#f3bb64;--blue:#66b9e8;font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);min-height:100vh;display:flex;flex-direction:column}
+header{padding:14px 18px;border-bottom:1px solid var(--line);background:#0e151a;display:flex;flex-wrap:wrap;gap:10px 22px;align-items:center;justify-content:space-between}
+.brand{font-size:13px;font-weight:750;letter-spacing:.12em}
+.brand small{display:block;margin-top:3px;color:var(--muted);font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:500}
+.stats{display:flex;flex-wrap:wrap;gap:8px}
+.stat{padding:7px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);min-width:96px}
+.stat b{display:block;font-size:18px}
+.stat span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.stat.m b{color:var(--orange)}.stat.v b{color:var(--blue)}.stat.f b{color:var(--gold)}
+main{position:relative;flex:1;min-height:420px}
+#map{position:absolute;inset:0;background:#0b1014}
+.card{position:absolute;z-index:500;background:rgba(14,21,26,.94);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12px;line-height:1.5;max-width:300px}
+#legend{left:12px;bottom:24px}
+#legend div{display:flex;align-items:center;gap:8px;margin:3px 0}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block}
+#msg{left:50%;top:18px;transform:translateX(-50%);text-align:center;max-width:min(420px,calc(100% - 24px))}
+#msg[hidden]{display:none}
+footer{padding:10px 18px;border-top:1px solid var(--line);background:#0e151a;color:var(--muted);font-size:11px;display:flex;flex-wrap:wrap;gap:6px 18px;justify-content:space-between}
+a{color:var(--blue)}
+.leaflet-popup-content{font:12px/1.5 Inter,system-ui,sans-serif;color:#111}
+@media(max-width:560px){.stat{min-width:0;flex:1}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">AeroFire Live<small>Türkiye · near-real-time satellite detections</small></div>
+  <div class="stats" aria-live="polite">
+    <div class="stat m"><b id="nM">-</b><span>MODIS</span></div>
+    <div class="stat v"><b id="nV">-</b><span>VIIRS</span></div>
+    <div class="stat f"><b id="nF">-</b><span>Fires</span></div>
+  </div>
+</header>
+<main>
+  <div id="map"></div>
+  <div id="msg" class="card" hidden></div>
+  <div id="legend" class="card">
+    <div><span class="dot" style="background:var(--orange)"></span>MODIS (about 1 km)</div>
+    <div><span class="dot" style="background:var(--blue)"></span>VIIRS (375 m)</div>
+    <div><span class="dot" style="border:2px solid var(--gold)"></span>Seen by both sensors</div>
+  </div>
+</main>
+<footer>
+  <span id="upd">Loading data…</span>
+  <span>Data: NASA FIRMS near-real-time (NASA updates about every 3 hours). Known static heat sources (factories) removed. Refreshes hourly.</span>
+  <a href="index.html">Hatay case study (Oct 2020) →</a>
+</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+(function () {
+  var map = L.map("map", { preferCanvas: true, minZoom: 4, maxBounds: [[20, 10], [50, 60]], maxBoundsViscosity: 1 });
+  map.fitBounds([[35.8, 25.6], [42.2, 44.9]]);
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom: 12, attribution: "© OpenStreetMap contributors" }).addTo(map);
+  var layer = L.layerGroup().addTo(map);
+  var msg = document.getElementById("msg");
+  function $(id) { return document.getElementById(id); }
+  function say(t) { msg.textContent = t; msg.hidden = !t; }
+  function fmt(n) { return Number(n).toLocaleString("en-US"); }
+
+  function draw(d) {
+    layer.clearLayers();
+    var pts = d.points || [];
+    var m = 0, v = 0;
+    pts.forEach(function (p) {
+      var isM = p.sensor === "MODIS";
+      isM ? m++ : v++;
+      var c = L.circleMarker([p.lat, p.lon], {
+        radius: isM ? 6 : 3.5, weight: p.match_id ? 2 : 1,
+        color: p.match_id ? "#f3bb64" : (isM ? "#ff744f" : "#66b9e8"),
+        fillColor: isM ? "#ff744f" : "#66b9e8", fillOpacity: .55
+      });
+      c.bindPopup("<b>" + p.sensor + "</b> (" + (p.satellite || "") + ")<br>" + p.date + " " + String(p.time).replace(/(\d\d)(\d\d)/, "$1:$2") + " UTC<br>Confidence: " + p.confidence_level +
+        (p.frp != null ? "<br>Fire power: " + p.frp + " MW" : ""));
+      c.addTo(layer);
+    });
+    $("nM").textContent = fmt(m); $("nV").textContent = fmt(v);
+    $("nF").textContent = fmt((d.fires || []).length);
+    var g = d.meta && d.meta.generated;
+    $("upd").textContent = g ? "Updated: " + new Date(g).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" }) + " (your time)" : "";
+    say(pts.length ? "" : "No vegetation fire detected in Türkiye recently.");
+  }
+
+  function load() {
+    fetch("data/live.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(draw)
+      .catch(function () {
+        say("Live data is not available yet. If you opened this file from your computer, use the website link instead.");
+        $("upd").textContent = "No data";
+      });
+  }
+  load();
+  setInterval(load, 10 * 60 * 1000);
+})();
+</script>
+</body>
+</html>
