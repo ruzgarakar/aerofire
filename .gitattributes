@@ -1,0 +1,5 @@
+*.sh linguist-language=Shell
+*.sh linguist-detectable=true
+
+scripts/* linguist-language=Shell
+scripts/* linguist-detectable=true
