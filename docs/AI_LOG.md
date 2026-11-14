@@ -1,8 +1,1 @@
-# Yapay zekâ kullanım kaydı
 
-| Tarih | Kim | Araç | Ne yapıldı | Kontrol |
-|---|---|---|---|---|
-| 2026-11-14 | Ahmet | Claude Code (Claude Opus 5.5) | harmonize.py'ye ortak 1 km ızgara (`grid`, `fires`, `meta.counts` oranları, `--grid-km`) eklendi; web/ Leaflet haritası (katmanlar, tarih filtresi, sayılar, popup, Belen grafiği) yazıldı; VERI_FORMATI.md güncellendi | Script 288 satırlık veriyle çalıştırıldı, eski sayılar (42/191, 17 grup, 3 eşleşen, 54+1 ayıklanan) aynı çıktı; harita masaüstü ve telefon boyutunda tarayıcıda denendi |
-| 2026-11-14 | Ahmet | Claude Code (Claude Opus 5.5) | Site İngilizceye çevrildi (bütün yazılar app.js'teki `TEXT` sabitinde, tarihler "Oct 8"); açılışta en büyük yangına (Belen, F-0001) zoom 12, "Zoom to Belen fire" ve "Show all of Hatay" düğmeleri; logo `web/img/aerofire_ikon.png`, arka plan `#0B1B2B`; grafik lejantı turuncu/mavi kareler; renkler sadece style.css `:root`'ta, app.js oradan okuyor, satır içi stil yok | Tarayıcıda masaüstü ve telefon boyutunda denendi: zoom 12 açılış, düğmeler (zoom 9 ↔ 12), tarih filtresi, popup'lar, lejant renkleri; logo dosyası yokken gizleniyor, varken 36 px gösteriliyor |
-| 2026-11-14 | Ahmet | Claude (sohbet) | Akay'ın 288 satırlık CSV'sinden `points.json` yeniden üretildi; takım panelinin (index.html) uyumlaştırma kodu çıkarılıp `data/points.json` okunacak şekilde değiştirildi; harita tek dünya ile sınırlandı; veri yüklenemezse hata şeridi eklendi | Sayılar harmonize.py çıktısıyla karşılaştırıldı (233 / 191 / 42, 4,55× → 1,43×, ızgara 35 / 50 / 23, Belen 24/24); masaüstü ve telefon boyutunda tarayıcıda denendi |
-| 2026-11-14 | Ahmet | DeepSeek | Takım panelinin metin ve görünüm düzenlemeleri (ayrıntı: Ahmet tamamlayacak) | Ahmet kontrol edecek |
