@@ -21,7 +21,7 @@
     };
     applySystemColorScheme(systemColorScheme);
     systemColorScheme.addEventListener("change", applySystemColorScheme);
-  </script>
+</script>
   <title>Hatay Yangın Gözlem Paneli — NASA Space Apps</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -613,7 +613,6 @@
     :root[data-theme="light"] .sidebar { scrollbar-color: #b7a9b2 transparent; }
     :root[data-theme="light"] .sidebar::-webkit-scrollbar-thumb { background-color: #b7a9b2; }
 
-    /* ============ UYUMLAŞTIRMA EKLEMELERİ ============ */
     .dot-ring { background: transparent !important; border: 2px solid #FFB020; width: 9px; height: 9px; }
     .sq { display: inline-block; width: 10px; height: 10px; border-radius: 2px; opacity: .85; }
     .check-gap { margin-top: 8px; }
@@ -655,7 +654,7 @@
       .map-meta { max-width: 210px; line-height: 1.5; }
       .footer { flex-direction: column; }
     }
-  </style>
+</style>
 </head>
 <body>
   <div class="app">
@@ -836,10 +835,6 @@
     (async () => {
       "use strict";
 
-      // ============ 1) VERİ ============
-      // Veri artık data/points.json dosyasından gelir (harmonize.py çıktısı).
-      // Dosya yüklenemezse sayfada hata yazısı çıkar. Sayfa file:// ile değil
-      // Live Server ya da GitHub Pages ile açılmalıdır.
       async function loadJSON(url) {
         const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error(url + " -> HTTP " + res.status);
@@ -855,7 +850,7 @@
           'Veri yüklenemedi (data/points.json). Sayfayı Live Server ya da GitHub Pages ile açın. Ayrıntı: ' + String(err.message) + '</div>');
         return;
       }
-      // Sınır: önce data/hatay_boundary.geojson, yoksa sayfadaki yedek sınır
+
       let boundaryGeo = null;
       try { boundaryGeo = await loadJSON("data/hatay_boundary.geojson"); } catch (e) { boundaryGeo = null; }
       const boundary = JSON.parse(document.getElementById("boundary-data").textContent);
@@ -875,7 +870,6 @@
         compare:    ["MODIS ve VIIRS karşılaştırması", "Her iki sensörün algılamaları aynı haritada gösterilir"]
       };
 
-      // ============ 2) HARMONİZASYON ============
       function haversineKm(lat1, lon1, lat2, lon2) {
         const R = 6371.0;
         const p1 = lat1 * Math.PI / 180, p2 = lat2 * Math.PI / 180;
@@ -900,7 +894,6 @@
         return t === "0" ? "vegetation" : t === "1" ? "volcano" : t === "2" ? "static" : t === "3" ? "offshore" : "unknown";
       }
 
-      // Uyumlaştırma artık harmonize.py'de yapılıyor; burada sadece JSON okunur.
       const TYPE_CODE = { vegetation: 0, volcano: 1, static: 2, offshore: 3 };
       function fromJSON(d) {
         const points = d.points.map((p, i) => ({
@@ -923,7 +916,6 @@
       const H = fromJSON(DATA);
       const largestFire = H.fireGroups[0] || null;
 
-      // ============ 3) YARDIMCILAR ============
       const $ = id => document.getElementById(id);
       let activeLayer = "points";
       let filteredFires = [];
@@ -950,10 +942,9 @@
         return p.confidence_level === "nominal" || p.confidence_level === "high";
       }
 
-      // ============ 4) HARİTA ============
       const rings = [];
       if (boundaryGeo) {
-        // GeoJSON: koordinatlar [boylam, enlem]; Leaflet [enlem, boylam] ister
+
         const feats = boundaryGeo.type === "FeatureCollection" ? boundaryGeo.features : [boundaryGeo];
         for (const f of feats) {
           const g = f.geometry || f;
@@ -969,7 +960,6 @@
         if (ring.length) rings.push(ring);
       }
 
-      // Harita tek bir dünya ile sınırlı: yatayda tekrar etmez, daha fazla uzaklaştırılamaz.
       const WORLD = L.latLngBounds([[-85, -180], [85, 180]]);
       const map = L.map("leafletMap", {
         zoomControl: false, scrollWheelZoom: true,
@@ -995,8 +985,7 @@
       map.fitBounds(mapBounds.pad(.04), { animate: false });
       L.control.scale({ metric: true, imperial: false, position: "bottomleft" }).addTo(map);
       window.addEventListener("resize", () => map.invalidateSize());
-      // Sayfa geç yüklenince harita kutusunun boyutu değişebiliyor; kullanıcı haritaya
-      // dokunana kadar boyutu yeniden ölçüp Hatay'a ortalıyoruz.
+
       let userTouchedMap = false;
       $("leafletMap").addEventListener("pointerdown", () => { userTouchedMap = true; });
       $("leafletMap").addEventListener("wheel", () => { userTouchedMap = true; }, { passive: true });
@@ -1008,7 +997,6 @@
       window.addEventListener("load", refit);
       if ("ResizeObserver" in window) new ResizeObserver(refit).observe($("leafletMap"));
 
-      // ============ 5) POPUP ============
       function pointPopup(p) {
         const catTag = p.category === "vegetation" ? "" : ` · <em>${categoryLabel(p.category)}</em>`;
         const conf = p.sensor === "VIIRS"
@@ -1025,7 +1013,6 @@
           `FRP: ${p.frp == null ? "—" : fmt(Number(p.frp), 1) + " MW"}${fireInfo}`;
       }
 
-      // ============ 6) ÇİZİM ============
       function drawFirePoints() {
         const maxFrp = Math.max(1, ...filteredFires.map(x => Number(x.frp) || 0));
         const sorted = [...filteredFires].sort((a, b) =>
@@ -1101,7 +1088,6 @@
         }
       }
 
-      // ============ 7) KARTLAR ============
       function updateSummary(date) {
         const fires = filteredFires;
         const viirs = fires.filter(p => p.sensor === "VIIRS").length;
@@ -1214,7 +1200,6 @@
         }
       }
 
-      // ============ 8) RENDER ============
       function render() {
         const date = $("dateFilter").value;
         const sensor = $("sensorFilter").value;
@@ -1286,7 +1271,6 @@
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       }
 
-      // ============ 9) OLAYLAR ============
       document.querySelectorAll(".layer-option").forEach(btn =>
         btn.addEventListener("click", () => setLayer(btn.dataset.layer)));
       ["dateFilter", "sensorFilter", "confidenceFilter", "boundaryToggle", "staticToggle"].forEach(id =>
@@ -1308,7 +1292,6 @@
       });
       $("downloadButton").addEventListener("click", downloadCsv);
 
-      // ============ 10) BAŞLAT ============
       $("methodExtra").textContent = "Sabit ısı kaynakları (FIRMS tip 2, örn. İskenderun kuzeyindeki fabrika) çıkarılmıştır. " +
         `Ortak 1 km ızgarada MODIS–VIIRS farkı ${ratio(H.points.filter(p=>p.category==="vegetation"&&p.sensor==="VIIRS").length, H.points.filter(p=>p.category==="vegetation"&&p.sensor==="MODIS").length)} → ` +
         `${ratio(H.grid.filter(c=>c.seen_by!=="MODIS").length, H.grid.filter(c=>c.seen_by!=="VIIRS").length)} aralığına iner. ` +
@@ -1316,6 +1299,6 @@
       updateLargestFireCard();
       render();
     })();
-  </script>
+</script>
 </body>
 </html>
