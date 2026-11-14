@@ -218,3 +218,11 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+# AeroFire: gizli ve lisanslı dosyalar, ASLA yüklenmez
+*.key
+map_key.txt
+data/raw/
+*gadm*
+*GADM*
