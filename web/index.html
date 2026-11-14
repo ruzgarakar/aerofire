@@ -732,6 +732,8 @@
           <div class="field">
             <label class="check-row"><input id="boundaryToggle" type="checkbox" checked> Show Hatay province boundary</label>
             <label class="check-row check-gap"><input id="staticToggle" type="checkbox"> Show non-fire points (static heat + offshore)</label>
+            <label class="check-row check-gap"><input id="liveToggle" type="checkbox"> Show live detections (last 2 days)</label>
+            <div class="range-meta" id="liveStatus" aria-live="polite"></div>
           </div>
         </div>
         <div class="legend" aria-label="Sensor colors">
@@ -979,6 +981,8 @@
       const harmonizedLayer = L.layerGroup();
       const pointLayer = L.layerGroup().addTo(map);
       const staticLayer = L.layerGroup();
+      const liveLayer = L.layerGroup();
+      map.createPane("livePane").style.zIndex = "430";
 
       const mapBounds = boundaryLayer.getBounds();
       H.points.filter(p => p.category === "vegetation").forEach(p => mapBounds.extend([p.lat, p.lon]));
@@ -1283,6 +1287,37 @@
         $("staticToggle").checked = false;
         render();
       });
+      let liveData = null;
+      async function showLive() {
+        const status = $("liveStatus");
+        liveLayer.clearLayers();
+        if (!$("liveToggle").checked) { map.removeLayer(liveLayer); status.textContent = ""; return; }
+        status.textContent = "Loading…";
+        try {
+          if (!liveData) {
+            const r = await fetch("data/live.json?t=" + Date.now(), { cache: "no-store" });
+            if (!r.ok) throw new Error(r.status);
+            liveData = await r.json();
+          }
+        } catch (e) {
+          status.textContent = "Live data is not available yet.";
+          return;
+        }
+        const box = boundaryLayer.getBounds();
+        const pts = (liveData.points || []).filter(p => box.contains([p.lat, p.lon]));
+        pts.forEach(p => {
+          L.circleMarker([p.lat, p.lon], {
+            radius: 7, pane: "livePane", color: "#ff2d2d", weight: 3,
+            fillColor: sensorColors[p.sensor], fillOpacity: .9
+          }).bindPopup(`<strong>LIVE · ${p.sensor}</strong><br>${p.date} ${String(p.time).replace(/(\d\d)(\d\d)/, "$1:$2")} UTC<br>Confidence: ${p.confidence_level}` +
+            (p.frp != null ? `<br>Fire power: ${p.frp} MW` : "")).addTo(liveLayer);
+        });
+        liveLayer.addTo(map);
+        const g = liveData.meta && liveData.meta.generated;
+        status.textContent = (pts.length ? `${pts.length} live detection${pts.length === 1 ? "" : "s"} in Hatay` : "No new fire detected in Hatay in the last 2 days") +
+          (g ? ` · updated ${new Date(g).toLocaleString("en-GB", { dateStyle: "medium", timeStyle: "short" })}` : "");
+      }
+      $("liveToggle").addEventListener("change", showLive);
       $("zoomIn").addEventListener("click", () => map.zoomIn());
       $("zoomOut").addEventListener("click", () => map.zoomOut());
       $("zoomReset").addEventListener("click", () => map.fitBounds(mapBounds.pad(.04)));
