@@ -36,6 +36,6 @@ In accordance with the NASA Space Apps Challenge rules and our commitment to Ope
 
 ---
 
-**Prepared by:** Akay Kaya
+**Written By:** Akay Kaya - Translated to English by Deepseek.
 *Note: Some terms, code structures, and resources used in this project are subject to 3rd-party licenses.*
 **Approved by:** NASA Space Apps AeroFire Team. Open for public use.
