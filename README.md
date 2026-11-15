@@ -1,80 +1,32 @@
-# AeroFire
-
+# AeroFire: Harmonizing MODIS and VIIRS Active Fire Data
 > NASA Space Apps Challenge 2026 · Challenge: **Harmonization of MODIS and VIIRS Hot Spots**
 > Team AeroFire · İskenderun, Hatay, Türkiye
 
-**Live map:** https://ruzgarakar.github.io/aerofire/web/
+**Live Application:** https://ruzgarakar.github.io/aerofire/web/
 
-## The problem
-MODIS (about 1 km pixels) and VIIRS (375 m pixels) both report active fires from space, but they do not report them the same way. A single fire is recorded as one or two MODIS points and dozens of VIIRS points, so raw counts from the two sensors cannot be compared and the long MODIS record cannot simply be continued with VIIRS as MODIS reaches the end of its mission. A reader looking at raw counts sees VIIRS "finding" several times more fires than MODIS, which is mostly a resolution effect, not more fire.
+## 1. The Problem: Apples and Oranges in Orbit
+MODIS (~1 km resolution) and VIIRS (375 m resolution) are both incredible tools for detecting active fires from space, but they do not speak the same language. A single large fire event might register as one or two massive MODIS pixels, but the exact same fire will be picked up as dozens of smaller VIIRS pixels. 
 
-## What AeroFire does
-- **Harmonizes** MODIS and VIIRS detections: points are grouped into fires (same day, within 1.5 km), and both sensors are also counted on a shared daily 1 km grid, so the sensors can be compared on equal terms.
-- **Shows the whole of Türkiye** with live monitoring: the map updates hourly from NASA FIRMS near-real-time data, with ranges of Live (last 7 days), 10 days, 1 month, 3 months, 6 months and 1 year. A **province report** shows, for any of the 81 provinces you click, the number of detections, the MODIS/VIIRS split, fire groups and the strongest fire. A **detection list** (newest first) gives every detection with its province and an approximate district.
-- **Documents a real fire**: the Belen fire (Hatay, October 2020) is kept as a fixed case study with a fixed result.
-- **Prototype (rule-based):** a settlement-exposure screening that combines live fires with current wind to flag villages, towns and cities that lie downwind, on a five-level scale (very low, low, moderate, high, very high). It is a simple rule-based screening, not a smoke dispersion model, and it uses no machine learning.
+If you look at raw detection counts, it looks like VIIRS is finding 4 or 5 times more fires than MODIS. But this is an optical illusion caused by spatial resolution. As MODIS approaches the end of its mission, we cannot simply stitch VIIRS data onto the historical MODIS record without a proper translation layer. That is exactly what AeroFire was built to solve.
 
-## How it works
-```
-NASA FIRMS (MODIS + VIIRS S-NPP + VIIRS NOAA-20)
-   →  scripts/ (GitHub Actions: hourly live, daily archive)
-   →  harmonize/harmonize.py  (fire groups, shared 1 km grid, static-source removal)
-   →  web/data/*.json
-   →  web/index.html, web/belen.html, web/risk.html  (Leaflet maps; Türkiye, Belen case study, settlement-risk prototype)
-```
+## 2. What AeroFire Does
+- **True Harmonization:** We don't just count raw pixels. We group detections into "fire clusters" (same day, within a 1.5 km radius) and map both sensors onto a shared daily 1 km grid. This allows us to compare MODIS and VIIRS on equal terms, shrinking the raw 4.55× detection gap down to a realistic 1.43×.
+- **National-Scale Live Monitoring:** Our map doesn't just look at one city; it monitors all of Türkiye. Using NASA FIRMS Near-Real-Time (NRT) data, the dashboard updates hourly. Users can filter by time (Live, 10 days, 1 month, up to 1 year) and view a **Province Report** for any of the 81 provinces, detailing MODIS/VIIRS splits and fire group statistics.
+- **Real-World Case Study:** To prove our methodology, we locked the Belen fire (Hatay, October 2020) as a fixed case study. This allows us to demonstrate exactly how the harmonization algorithm behaves under controlled conditions.
+- **Settlement-Risk Prototype:** We went a step further to show how this data can be used in the real world. By combining live fire data with current 10m wind data (Open-Meteo), we created a rule-based screening tool that flags settlements downwind of active fires. *(Note: This is a heuristic screening prototype, not a full atmospheric smoke dispersion model.)*
 
-## Results
-**Belen fire, Hatay, 8–12 October 2020 (fixed run, does not change):**
+## 3. How It Works: The Pipeline
+We built a robust, zero-dependency backend to fetch and filter the data, feeding into a Python harmonization layer and a sleek Leaflet frontend.
 
-| | MODIS | VIIRS |
-| --- | --- | --- |
-| Raw detections | 42 | 191 |
-| Raw VIIRS / MODIS ratio | 4.55× | |
-| Ratio on the shared 1 km grid | 1.43× | |
-| Fire groups | 17 (3 seen by both sensors) | |
-| Largest fire (F-0001) | 30 MODIS / 148 VIIRS detections → 24 / 24 grid squares | |
-
-On the shared grid the gap between the sensors shrinks from 4.55× to 1.43×.
-
-**Türkiye (live):** the numbers on the live map change with the selected time range and with new data, so they are not fixed here.
-
-## Run it yourself
-```bash
-# 1. Get a free FIRMS MAP_KEY: https://firms.modaps.eosdis.nasa.gov/api/map_key/
-export MAP_KEY=your_key_here        # never commit your key (use a GitHub Actions secret)
-# 2. Harmonize
-python harmonize/harmonize.py --input data/processed/tr_archive.csv --output web/data/tr_year.json
-# 3. Open web/index.html with any static server (e.g. VS Code Live Server)
-```
-On GitHub, `.github/workflows/live.yml` (hourly) and `archive.yml` (daily) update the data; the `MAP_KEY` secret must be set and workflow permissions must be "Read and write".
-
-## Data sources
-- NASA FIRMS active fire data: MODIS, VIIRS S-NPP and VIIRS NOAA-20 — https://firms.modaps.eosdis.nasa.gov
-- Weather (settlement-risk prototype): Open-Meteo current 10 m wind — https://open-meteo.com
-- Province boundaries (province report and detection list): GADM 4.1 — https://gadm.org (free for academic and non-commercial use)
-- Settlements (villages, towns, cities) and district centres: GeoNames — https://www.geonames.org (CC BY 4.0)
-
-## Known limitations
-- **Data gaps (satellite events):** Nov 2025 – Aug 2026 comes from the FIRMS standard-processing archive. NASA reported an anomaly of the Suomi NPP satellite on 2 August 2026 (02:05 UTC); data from 3 August 02:00 UTC to 6 August 16:24 UTC was excluded from processing, and standard processing resumed on 10 August ([NASA Earthdata notice](https://www.earthdata.nasa.gov/data/alerts-outages/suomi-npp-viirs-data-outage-anomaly-august-2-2026)). In the FIRMS standard archive we pulled, August 2026 contains MODIS but no VIIRS records; we have not found an official explanation for the NOAA-20 part of this gap, so we simply mark August 2026 as MODIS-only. From 30 August 2026 the data comes from near-real-time (NRT) products.
-- **August 2026:** VIIRS data could not be obtained for August 2026, so the month contains MODIS detections only (487 MODIS, 0 VIIRS). VIIRS/MODIS ratios that include this month are not comparable with other months.
-
-  ![August 2026: MODIS 487, VIIRS 0 per 0.1° grid cell, Türkiye](aug2026.png)
-- **End of Suomi NPP:** NOAA ended delivery of all Suomi NPP science products on 2 November 2026 ([NOAA NESDIS notice](https://www.nesdis.noaa.gov/news/cessation-of-suomi-national-polar-orbiting-partnership-s-npp-data-users-onafter-november-2-2026)). From that date our VIIRS data comes from NOAA-20 only, so VIIRS counts drop and the MODIS/VIIRS ratio before and after 2 November is not directly comparable.
-- **NRT vs archive:** NRT has no static-source flag, so known static heat sources (e.g. industrial flares) are removed with a list derived from the archive. Counts may differ slightly from final standard-processing data.
-- **Latency:** NASA near-real-time data arrives about three hours after satellite overpass; the live view is not instantaneous.
-- **Detections are not fires or burned area:** one fire gives many detections. The harmonized grid reduces, but does not remove, the sensor difference.
-- **Settlement-risk prototype:** a rule-based screening heuristic, not a smoke dispersion model. It uses the current 10 m wind only, ignores terrain, rain and smoke height, and does not estimate air quality or health effects. The five risk levels use thresholds we chose ourselves; they are not a scientific standard. Population comes from GeoNames, is missing for many villages and is therefore a lower bound.
-- **Districts are approximate:** the district shown in the detection list and the risk table is the nearest district centre within the province (GeoNames), not a true district boundary. The province comes from real boundaries (GADM).
-
-## Team
-- Ahmet — leader, harmonization, backend
-- Akay — Data,backend,Design
-- Ceyhun — Frontend & Presentation
-- Rüzgar — Research & impact
-
-## Notes on preparation and AI use
-- Before the event we prepared only the folder structure, empty templates and a data-download helper script. The harmonization logic, the maps and the results were built during the hackathon (14–15 November 2026).
-- AI tools (Claude and DeepSeek) were used for coding and informational help, debugging and drafting text; every use is listed in `docs/AI_LOG.md`. The settlement-risk analysis itself is rule-based: no AI or machine-learning model produces the risk levels. We checked results by comparing them with NASA FIRMS data and with the fixed Belen result.
-
-## License
-MIT
+```text
+[ NASA FIRMS API (MODIS, VIIRS S-NPP, VIIRS NOAA-20) ]
+       ↓ (Hourly Live Fetch / Daily Archive Fetch via GitHub Actions)
+[ scripts/ ] (Bash & Awk Backend)
+       ↓ (API rate-limit management, GeoJSON Point-in-Polygon boundary filtering)
+[ data/processed/tr_archive.csv ]
+       ↓ 
+[ harmonize/harmonize.py ]
+       ↓ (Fire clustering, 1 km Grid mapping, static heat source removal)
+[ web/data/*.json ]
+       ↓ 
+[ web/index.html, web/belen.html, web/risk.html ] (Leaflet Interactive Map)
