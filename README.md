@@ -2,8 +2,6 @@
 > NASA Space Apps Challenge 2026 · Challenge: Harmonization of MODIS and VIIRS Hot Spots
 > Team AeroFire · İskenderun, Hatay, Türkiye
 
-**Live Application:** [LINK] · **Demo Slides:** [LINK]
-
 ## 1. Problem Statement
 Multi-sensor satellite observations of active fires (MODIS and VIIRS) differ significantly in spatial resolution (1 km vs. 375 m), detection sensitivity, and overpass timing. This heterogeneity creates a data fusion challenge for disaster management and environmental monitoring. Furthermore, analyzing border regions (e.g., Hatay, Türkiye) requires eliminating false positives originating from neighboring countries (e.g., Syria) and distinguishing actual vegetation fires from permanent industrial heat sources (Type 2 anomalies). 
 
