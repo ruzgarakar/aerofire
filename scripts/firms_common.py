@@ -1,4 +1,3 @@
-"""Shared helpers: FIRMS area API (same call that works in the local tool) + Türkiye boundary filter."""
 import os
 import time
 import urllib.error
