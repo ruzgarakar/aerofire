@@ -142,6 +142,16 @@
 
     .below-grid { display: grid; grid-template-columns: 1.12fr .88fr; gap: 13px; margin-top: 14px; }
     .info-card { min-width: 0; padding: 15px; border: 1px solid var(--line); border-radius: 11px; background: var(--panel); }
+    .province-card { margin-top: 14px; }
+    .province-heading { margin: 0; font-size: 19px; }
+    .province-prompt, .province-footnote { color: var(--muted); font-size: 11px; line-height: 1.6; }
+    .province-report { margin: 12px 0; padding: 11px 12px; border-left: 2px solid var(--orange); border-radius: 0 7px 7px 0; background: var(--panel-2); font-size: 11px; line-height: 1.65; }
+    .province-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .province-stat { padding: 9px 10px; border: 1px solid var(--line); border-radius: 8px; }
+    .province-stat b { display: block; font-size: 17px; font-variant-numeric: tabular-nums; }
+    .province-stat span { color: var(--muted); font-size: 9px; }
+    .province-footnote { margin: 10px 0 0; font-size: 9px; }
+    @media (max-width: 640px) { .province-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     .card-title { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 13px; font-size: 12px; font-weight: 700; }
     .card-tag { color: #809097; font-size: 9px; font-weight: 500; }
     .chart { display: flex; align-items: flex-end; justify-content: space-around; gap: 10px; height: 112px; padding: 3px 4px 0; border-bottom: 1px solid #334149; }
@@ -793,7 +803,7 @@
             <div class="range-meta">MODIS: ≥50 / ≥80 · VIIRS: nominal+ / high</div>
           </div>
           <div class="field">
-            <label class="check-row" hidden><input id="boundaryToggle" type="checkbox"> Province boundary</label>
+            <label class="check-row" hidden><input id="boundaryToggle" type="checkbox" checked> Province boundary</label>
             <label class="check-row check-gap"><input id="staticToggle" type="checkbox"> Show non-fire points (static heat + offshore)</label>
           </div>
         </div>
@@ -855,6 +865,15 @@
           <div class="empty-state" id="emptyState" hidden>No detections match these filters.<br>Loosen the filters and try again.</div>
           <div class="map-legend" id="mapLegend"><span class="legend-item"><i class="dot" style="background:#ff855d"></i>MODIS</span><span class="legend-item"><i class="dot" style="background:#69b9e8"></i>VIIRS</span></div>
         </div>
+      </section>
+
+      <section class="info-card province-card" aria-labelledby="provincePanelTitle" aria-live="polite">
+        <div class="card-title"><span>Province fire report</span><span class="card-tag" id="provinceStatus">Hover over a province</span></div>
+        <div id="provinceContent">
+          <h2 class="province-heading" id="provincePanelTitle">Data for all 81 provinces</h2>
+          <p class="province-prompt">Hover over or click a province on the map. The selected date, satellite, and confidence filters apply to these statistics.</p>
+        </div>
+        <p class="province-footnote">This prototype report is generated locally from NASA FIRMS satellite detections; it does not use a generative AI service. Detection counts are not counts of individual fires or burned area.</p>
       </section>
 
       <section class="below-grid" id="analysis" aria-label="Data charts and findings">
@@ -938,9 +957,6 @@
           'Data could not be loaded. Open the page with Live Server or GitHub Pages. Details: ' + String(err.message) + '</div>');
         return;
       }
-
-      const boundaryGeo = null;
-      const boundary = [];
 
       const sensorColors = { MODIS: "#ff855d", VIIRS: "#69b9e8" };
       const COLORS = { MODIS: sensorColors.MODIS, VIIRS: sensorColors.VIIRS, matched: "#FFB020", static: "#8A8F98" };
@@ -1038,22 +1054,16 @@
         return p.confidence_level === "nominal" || p.confidence_level === "high";
       }
 
-      const rings = [];
-      if (boundaryGeo) {
-
-        const feats = boundaryGeo.type === "FeatureCollection" ? boundaryGeo.features : [boundaryGeo];
-        for (const f of feats) {
-          const g = f.geometry || f;
-          const polys = g.type === "Polygon" ? [g.coordinates] : g.type === "MultiPolygon" ? g.coordinates : [];
-          for (const poly of polys) for (const r of poly) rings.push(r.map(([lon, lat]) => [lat, lon]));
+      let provinceGeo = null;
+      let provinceLoadError = "";
+      try {
+        provinceGeo = await loadJSON("data/gadm41_TUR_1.json");
+        if (provinceGeo.type !== "FeatureCollection" || provinceGeo.features.length !== 81) {
+          throw new Error("İl sınırı dosyasında 81 il bulunamadı.");
         }
-      } else {
-        let ring = [];
-        for (const [lon, lat] of boundary) {
-          ring.push([lat, lon]);
-          if (ring.length > 2 && lon === ring[0][1] && lat === ring[0][0]) { rings.push(ring); ring = []; }
-        }
-        if (ring.length) rings.push(ring);
+      } catch (err) {
+        provinceLoadError = "Could not load province boundaries: " + String(err.message || err);
+        console.error(provinceLoadError);
       }
 
       const WORLD = L.latLngBounds([[-85, -180], [85, 180]]);
@@ -1066,9 +1076,24 @@
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a> · Data: NASA FIRMS'
       }).addTo(map);
 
-      const boundaryLayer = L.featureGroup(rings.map(pts => L.polygon(pts, {
-        color: "#c2410c", weight: 2, opacity: .9, fillColor: "#d63638", fillOpacity: .05
-      }))).addTo(map);
+      const provinceByPoint = new WeakMap();
+      const provincePoints = new Map();
+      const provinceBounds = [];
+      let focusedProvince = null;
+      let hoveredProvince = null;
+      const provinceLayer = provinceGeo ? L.geoJSON(provinceGeo, {
+        style: () => ({ color: "#c2410c", weight: 1, opacity: .78, fillColor: "#d63638", fillOpacity: .025 }),
+        onEachFeature: (feature, layer) => {
+          const provinceName = feature.properties.NAME_1;
+          layer.bindTooltip(provinceName, { sticky: true, direction: "top" });
+          const bounds = layer.getBounds();
+          provinceBounds.push({
+            name: provinceName, layer, geometry: feature.geometry,
+            south: bounds.getSouth(), north: bounds.getNorth(),
+            west: bounds.getWest(), east: bounds.getEast()
+          });
+        }
+      }).addTo(map) : L.featureGroup();
       map.createPane("gridPane").style.zIndex = "410";
       map.createPane("pointPane").style.zIndex = "420";
       const gridLayer = L.layerGroup().addTo(map);
@@ -1091,6 +1116,144 @@
       [100, 400, 1000, 2000].forEach(ms => setTimeout(refit, ms));
       window.addEventListener("load", refit);
       if ("ResizeObserver" in window) new ResizeObserver(refit).observe($("leafletMap"));
+
+      function pointInRing(lon, lat, ring) {
+        let inside = false;
+        for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+          const [xi, yi] = ring[i], [xj, yj] = ring[j];
+          if ((yi > lat) !== (yj > lat) && lon < (xj - xi) * (lat - yi) / (yj - yi) + xi) inside = !inside;
+        }
+        return inside;
+      }
+
+      function pointInProvince(lon, lat, geometry) {
+        const polygons = geometry.type === "Polygon" ? [geometry.coordinates]
+          : geometry.type === "MultiPolygon" ? geometry.coordinates : [];
+        return polygons.some(rings => pointInRing(lon, lat, rings[0]) &&
+          !rings.slice(1).some(hole => pointInRing(lon, lat, hole)));
+      }
+
+      function indexProvincePoints(points) {
+        provincePoints.clear();
+        if (!provinceGeo) return;
+        for (const feature of provinceGeo.features) provincePoints.set(feature.properties.NAME_1, []);
+        for (const point of points) {
+          for (const b of provinceBounds) {
+            if (point.lat < b.south || point.lat > b.north || point.lon < b.west || point.lon > b.east) continue;
+            if (pointInProvince(point.lon, point.lat, b.geometry)) {
+              provinceByPoint.set(point, b.name);
+              provincePoints.get(b.name).push(point);
+              break;
+            }
+          }
+        }
+      }
+
+      function turkishProvinceName(name) {
+        const names = {
+          Adiyaman: "Adıyaman", Afyon: "Afyonkarahisar", Agri: "Ağrı", Aydin: "Aydın",
+          Balikesir: "Balıkesir", Bingol: "Bingöl", Canakkale: "Çanakkale", "Çankiri": "Çankırı",
+          Corum: "Çorum", Diyarbakir: "Diyarbakır", Elazig: "Elazığ", Eskisehir: "Eskişehir",
+          Gumushane: "Gümüşhane", "Gümüshane": "Gümüşhane", Igdir: "Iğdır", "K.Maras": "Kahramanmaraş",
+          Kahramanmaras: "Kahramanmaraş", Kinkkale: "Kırıkkale", Kirikkale: "Kırıkkale",
+          Kirklareli: "Kırklareli", Kirsehir: "Kırşehir", Kutahya: "Kütahya", Mus: "Muş",
+          Mugla: "Muğla", Nevsehir: "Nevşehir", Nigde: "Niğde", Istanbul: "İstanbul",
+          Izmir: "İzmir", Sanliurfa: "Şanlıurfa", Sirnak: "Şırnak", Tekirdag: "Tekirdağ",
+          Usak: "Uşak", Zinguldak: "Zonguldak"
+        };
+        return names[name] || name;
+      }
+
+      function provinceAt(latlng) {
+        const { lat, lng } = latlng;
+        const match = provinceBounds.find(province =>
+          lat >= province.south && lat <= province.north &&
+          lng >= province.west && lng <= province.east &&
+          pointInProvince(lng, lat, province.geometry));
+        return match ? match.name : null;
+      }
+
+      function resetProvinceStyle(name) {
+        const province = provinceBounds.find(item => item.name === name);
+        if (!province) return;
+        provinceLayer.resetStyle(province.layer);
+        if (name === focusedProvince) province.layer.setStyle({ color: "#e95420", weight: 2.5, fillOpacity: .14 });
+      }
+
+      function updateProvincePanel() {
+        const name = hoveredProvince || focusedProvince;
+        if (provinceLoadError) {
+          $("provinceStatus").textContent = "Boundary data unavailable";
+          $("provinceContent").innerHTML = `<p class="province-prompt">${escapeHTML(provinceLoadError)}</p>`;
+          return;
+        }
+        if (!name) {
+          $("provinceStatus").textContent = "Hover over a province";
+          $("provinceContent").innerHTML = '<h2 class="province-heading" id="provincePanelTitle">Data for all 81 provinces</h2><p class="province-prompt">Hover over or click a province on the map. The selected date, satellite, and confidence filters apply to these statistics.</p>';
+          return;
+        }
+        const activePoints = new Set(filteredFires);
+        const points = (provincePoints.get(name) || []).filter(point => activePoints.has(point));
+        const fireGroups = new Set(points.map(point => point.fire_id).filter(Boolean));
+        const modis = points.filter(point => point.sensor === "MODIS").length;
+        const viirs = points.length - modis;
+        const peakPoint = points.reduce((peak, point) =>
+          !peak || Number(point.frp) > Number(peak.frp) ? point : peak, null);
+        const latestDate = points.reduce((latest, point) => point.date > latest ? point.date : latest, "");
+        const displayName = turkishProvinceName(name);
+        const report = points.length
+          ? `${displayName} recorded <strong>${fmt(points.length)}</strong> satellite fire detections across <strong>${fmt(fireGroups.size)}</strong> fire groups in the selected period. ${fmt(viirs)} detections came from VIIRS and ${fmt(modis)} from MODIS.${peakPoint ? ` Peak FRP was ${fmt(Number(peakPoint.frp), 1)} MW (${peakPoint.date}).` : ""}`
+          : `No fire detections were found for ${displayName} with the selected dates and filters. This does not mean there were no fires; satellite overpasses and detection conditions can affect observations.`;
+        $("provinceStatus").textContent = "NASA FIRMS · selected filters";
+        $("provinceContent").innerHTML =
+          `<h2 class="province-heading" id="provincePanelTitle">${escapeHTML(displayName)}</h2>` +
+          `<div class="province-report">${report}</div>` +
+          `<div class="province-stats">` +
+          `<div class="province-stat"><b>${fmt(points.length)}</b><span>Satellite detections</span></div>` +
+          `<div class="province-stat"><b>${fmt(fireGroups.size)}</b><span>Fire groups</span></div>` +
+          `<div class="province-stat"><b>${fmt(viirs)} / ${fmt(modis)}</b><span>VIIRS / MODIS</span></div>` +
+          `<div class="province-stat"><b>${peakPoint ? fmt(Number(peakPoint.frp), 1) + " MW" : "—"}</b><span>Peak FRP</span></div>` +
+          `</div><p class="province-footnote">${latestDate ? `Latest detection: ${escapeHTML(latestDate)} · ` : ""}${escapeHTML($("dateFilter").value === "all" ? RANGES[rangeKey].label : $("dateFilter").value)}. These are satellite observations, not counts of individual fires or burned area.</p>`;
+      }
+
+      indexProvincePoints(H.points);
+      if (provinceLoadError) {
+        $("provinceStatus").textContent = "Boundary data unavailable";
+        $("provinceContent").innerHTML = `<p class="province-prompt">${escapeHTML(provinceLoadError)}</p>`;
+      }
+
+      map.on("mousemove", event => {
+        const name = provinceAt(event.latlng);
+        if (name === hoveredProvince) return;
+        if (hoveredProvince) {
+          const previous = provinceBounds.find(item => item.name === hoveredProvince);
+          if (previous) previous.layer.closeTooltip();
+          resetProvinceStyle(hoveredProvince);
+        }
+        hoveredProvince = name;
+        if (name) {
+          const province = provinceBounds.find(item => item.name === name);
+          province.layer.setStyle({ color: "#e95420", weight: 2.5, fillOpacity: .16 });
+          province.layer.openTooltip(event.latlng);
+        }
+        updateProvincePanel();
+      });
+      map.on("mouseout", () => {
+        if (!hoveredProvince) return;
+        const previous = provinceBounds.find(item => item.name === hoveredProvince);
+        if (previous) previous.layer.closeTooltip();
+        resetProvinceStyle(hoveredProvince);
+        hoveredProvince = null;
+        updateProvincePanel();
+      });
+      map.on("click", event => {
+        const name = provinceAt(event.latlng);
+        if (!name) return;
+        if (focusedProvince) resetProvinceStyle(focusedProvince);
+        focusedProvince = name;
+        resetProvinceStyle(name);
+        updateProvincePanel();
+      });
 
       function pointPopup(p) {
         const catTag = p.category === "vegetation" ? "" : ` · <em>${categoryLabel(p.category)}</em>`;
@@ -1342,7 +1505,7 @@
         toggle(staticLayer, pointsOn && $("staticToggle").checked);
         toggle(harmonizedLayer, harmOn);
         toggle(gridLayer, gridOn);
-        toggle(boundaryLayer, $("boundaryToggle").checked);
+        toggle(provinceLayer, $("boundaryToggle").checked);
 
         $("mapTitle").textContent = layerNames[activeLayer][0];
         $("mapMeta").textContent = layerNames[activeLayer][1];
@@ -1360,6 +1523,7 @@
         updateSummary(date);
         updateCharts(filteredFires);
         updateHarmonization(date);
+        updateProvincePanel();
       }
 
       function setLayer(layer) {
@@ -1423,6 +1587,7 @@
         rangeKey = key;
         DATA = d;
         H = ranged(d, key);
+        indexProvincePoints(H.points);
         largestFire = H.fireGroups[0] || null;
         newKeys = refresh ? new Set(H.points.filter(p => !prev.has(keyOfPoint(p))).map(keyOfPoint)) : new Set();
         document.querySelectorAll(".range-option").forEach(btn => btn.setAttribute("aria-pressed", String(btn.dataset.range === key)));
