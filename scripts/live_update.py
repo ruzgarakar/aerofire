@@ -15,6 +15,9 @@ from datetime import datetime, timedelta, timezone
 import urllib.request
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from firms_common import api_fetch, in_turkey  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 SOURCES = {"MODIS_NRT": "MODIS", "VIIRS_SNPP_NRT": "VIIRS", "VIIRS_NOAA20_NRT": "VIIRS"}
 DAYS = 2          # how many days are asked from NASA every hour
@@ -29,21 +32,7 @@ def fetch(source):
     sample = os.environ.get("AEROFIRE_SAMPLE_DIR")
     if sample:
         return Path(sample, source + ".csv").read_text(encoding="utf-8")
-    key = os.environ.get("MAP_KEY", "").strip()
-    if not key:
-        sys.exit("MAP_KEY is missing")
-    url = f"https://firms.modaps.eosdis.nasa.gov/api/country/csv/{key}/{source}/TUR/{DAYS}"
-    for attempt in range(3):
-        try:
-            with urllib.request.urlopen(url, timeout=90) as r:
-                text = r.read().decode("utf-8")
-            if text.lstrip().lower().startswith("latitude"):
-                return text
-            print(f"{source}: unexpected answer ({text[:80]!r})")
-        except Exception as e:
-            print(f"{source}: attempt {attempt + 1} failed: {type(e).__name__}")
-        time.sleep(5 * (attempt + 1))
-    return None
+    return api_fetch(source, DAYS)
 
 
 def cell(lat, lon):
@@ -63,7 +52,7 @@ def main():
                 lat, lon = float(r["latitude"]), float(r["longitude"])
             except (KeyError, ValueError):
                 continue
-            if cell(lat, lon) in static:
+            if cell(lat, lon) in static or not in_turkey(lat, lon):
                 dropped += 1
                 continue
             bright = r.get("brightness") or r.get("bright_ti4") or ""

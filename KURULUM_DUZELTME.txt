@@ -1,0 +1,7 @@
+DUZELTME: NASA ulke sorgusu HTTPError verdi -> Akay'in araciyla ayni calisan "alan (bbox)" sorgusuna gectik + Turkiye sinir filtresi.
+Repoya koy (var olanin USTUNE yaz):
+  scripts/firms_common.py   (YENI)
+  scripts/live_update.py
+  scripts/archive_update.py
+  data/turkiye_sinir.txt    (YENI)
+Sonra Actions > live-update > Run workflow.

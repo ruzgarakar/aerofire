@@ -16,6 +16,9 @@ import urllib.request
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from firms_common import api_fetch, in_turkey  # noqa: E402
+
 ROOT = Path(__file__).resolve().parent.parent
 ARCHIVE = ROOT / "data" / "processed" / "tr_archive.csv"
 STATIC = ROOT / "data" / "static_cells.json"
@@ -31,22 +34,7 @@ def fetch(source, start, days):
     if sample:
         p = Path(sample, source + ".csv")
         return p.read_text(encoding="utf-8") if p.exists() else ""
-    key = os.environ.get("MAP_KEY", "").strip()
-    if not key:
-        sys.exit("MAP_KEY is missing")
-    url = f"https://firms.modaps.eosdis.nasa.gov/api/country/csv/{key}/{source}/TUR/{days}/{start}"
-    for attempt in range(3):
-        try:
-            with urllib.request.urlopen(url, timeout=120) as r:
-                text = r.read().decode("utf-8")
-            if text.lstrip().lower().startswith("latitude"):
-                return text
-            print(f"{source} {start}: unexpected answer {text[:60]!r}")
-            return ""
-        except Exception as e:
-            print(f"{source} {start}: attempt {attempt + 1} failed: {type(e).__name__}")
-            time.sleep(5 * (attempt + 1))
-    return None
+    return api_fetch(source, days, start, timeout=45, tries=2)
 
 
 def cell(lat, lon):
@@ -70,6 +58,7 @@ def main():
     while cur <= today:
         days = min(CHUNK, (today - cur).days + 1)
         got = 0
+        print(f"chunk {cur} +{days}d", flush=True)
         for source, sensor in SOURCES.items():
             text = fetch(source, cur.isoformat(), days)
             if text is None:
@@ -80,7 +69,7 @@ def main():
                     lat, lon = float(r["latitude"]), float(r["longitude"])
                 except (KeyError, ValueError):
                     continue
-                if cell(lat, lon) in static:
+                if cell(lat, lon) in static or not in_turkey(lat, lon):
                     continue
                 bright = r.get("brightness") or r.get("bright_ti4") or ""
                 new = [sensor, str(lat), str(lon), bright, r["acq_date"], r["acq_time"].zfill(4),
