@@ -1,9 +1,3 @@
-"""Hourly live update: NASA FIRMS near-real-time data for Turkey -> web/data/live.json.
-
-Needs the MAP_KEY environment variable (a GitHub Secret). The key is never written to a file.
-Test without internet: set AEROFIRE_SAMPLE_DIR to a folder with MODIS_NRT.csv,
-VIIRS_SNPP_NRT.csv and VIIRS_NOAA20_NRT.csv.
-"""
 import csv
 import io
 import json
