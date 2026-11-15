@@ -1,10 +1,3 @@
-"""Daily job: extend the Türkiye archive with the newest NASA FIRMS data and rebuild web/data/tr_year.json.
-
-Seed: data/processed/tr_archive.csv (FIRMS archive, Nov 2025 - Aug 2026, static sources already flagged as type 2).
-New days come from the near-real-time (NRT) sources, which carry no `type` column, so known static
-heat sources (data/static_cells.json) are removed instead.
-Needs MAP_KEY. Test without internet: AEROFIRE_SAMPLE_DIR=<folder with MODIS_NRT.csv, VIIRS_SNPP_NRT.csv, VIIRS_NOAA20_NRT.csv>.
-"""
 import csv
 import io
 import json
