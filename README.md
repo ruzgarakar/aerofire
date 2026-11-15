@@ -1,9 +1,9 @@
-# AeroFire — One Fire, One Story
+# AeroFire
 
 > NASA Space Apps Challenge 2026 · Challenge: **Harmonization of MODIS and VIIRS Hot Spots**
 > Team AeroFire · İskenderun, Hatay, Türkiye
 
-**Live map:** https://ruzgarakar.github.io/aerofire/web/  ·  **Demo slides:** [LINK]
+**Live map:** https://ruzgarakar.github.io/aerofire/web/
 
 ## The problem
 MODIS (about 1 km pixels) and VIIRS (375 m pixels) both report active fires from space, but they do not report them the same way. A single fire is recorded as one or two MODIS points and dozens of VIIRS points, so raw counts from the two sensors cannot be compared and the long MODIS record cannot simply be continued with VIIRS as MODIS reaches the end of its mission. A reader looking at raw counts sees VIIRS "finding" several times more fires than MODIS, which is mostly a resolution effect, not more fire.
