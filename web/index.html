@@ -1620,9 +1620,31 @@
         const back = $("dlBack"), body = $("dlBody"); let sorted = [], shown = 0; const STEP = 300;
         const esc = v => String(v ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
         const hhmm = t => { const x = String(t ?? "").padStart(4, "0"); return x.slice(0, 2) + ":" + x.slice(2); };
+        let DIST = null;
+        fetch("data/districts.json").then(r => r.ok ? r.json() : null).then(j => { DIST = j; }).catch(() => {});
+        function distName(p) {
+          const pn = provName(p);
+          if (!DIST || pn === "\u2014") return "\u2014";
+          const raw = provinceByPoint.get(p), list = DIST[raw];
+          if (!list || !list.length) return "\u2014";
+          const k = Math.cos(p.lat * Math.PI / 180);
+          let best = null, bd = 1e9;
+          for (const d of list) { const dx = (d[2] - p.lon) * k, dy = d[1] - p.lat, s = dx * dx + dy * dy; if (s < bd) { bd = s; best = d[0]; } }
+          return best || "\u2014";
+        }
+        function provName(p) {
+          let n = provinceByPoint.get(p);
+          if (!n && provinceGeo) {
+            for (const b of provinceBounds) {
+              if (p.lat < b.south || p.lat > b.north || p.lon < b.west || p.lon > b.east) continue;
+              if (pointInProvince(p.lon, p.lat, b.geometry)) { n = b.name; provinceByPoint.set(p, n); break; }
+            }
+          }
+          return n ? turkishProvinceName(n) : "\u2014";
+        }
         function more() {
           const part = sorted.slice(shown, shown + STEP);
-          body.insertAdjacentHTML("beforeend", part.map(p => `<tr><td>${esc(p.date)}</td><td>${hhmm(p.time)}</td><td>${esc(p.sensor)}</td><td>${esc(p.satellite)}</td><td>${Number(p.lat).toFixed(4)}</td><td>${Number(p.lon).toFixed(4)}</td><td>${esc(p.brightness)}</td><td>${esc(p.frp)}</td><td>${esc(p.confidence_level || p.confidence_raw)}</td><td>${p.category === "vegetation" ? "Fire" : "Static/offshore"}</td><td>${esc(p.fire_id || "–")}</td></tr>`).join(""));
+          body.insertAdjacentHTML("beforeend", part.map(p => `<tr><td>${esc(p.date)}</td><td>${hhmm(p.time)}</td><td>${esc(p.sensor)}</td><td>${esc(p.satellite)}</td><td>${esc(provName(p))}</td><td>${esc(distName(p))}</td><td>${esc(p.brightness)}</td><td>${esc(p.frp)}</td><td>${esc(p.confidence_level || p.confidence_raw)}</td><td>${p.category === "vegetation" ? "Fire" : "Static/offshore"}</td><td>${esc(p.fire_id || "–")}</td></tr>`).join(""));
           shown += part.length;
           $("dlCount").textContent = `Showing ${shown.toLocaleString("en-US")} of ${sorted.length.toLocaleString("en-US")} detections, newest first`;
           $("dlMore").style.display = shown < sorted.length ? "" : "none";
@@ -1646,7 +1668,7 @@
     <div class="dl-back" id="dlBack" role="dialog" aria-modal="true" aria-labelledby="dlTitle">
       <div class="dl-box">
         <div class="dl-head"><div><h3 id="dlTitle">Detection list</h3><small id="dlSub"></small></div><button class="action" id="dlClose" type="button">Close ✕</button></div>
-        <div class="dl-scroll"><table class="dl-table"><thead><tr><th>Date (UTC)</th><th>Time</th><th>Sensor</th><th>Satellite</th><th>Latitude</th><th>Longitude</th><th>Brightness (K)</th><th>FRP (MW)</th><th>Confidence</th><th>Type</th><th>Fire group</th></tr></thead><tbody id="dlBody"></tbody></table></div>
+        <div class="dl-scroll"><table class="dl-table"><thead><tr><th>Date (UTC)</th><th>Time</th><th>Sensor</th><th>Satellite</th><th>Province</th><th title="Nearest district centre within the province (approximate)">District (approx.)</th><th>Brightness (K)</th><th>FRP (MW)</th><th>Confidence</th><th>Type</th><th>Fire group</th></tr></thead><tbody id="dlBody"></tbody></table></div>
         <div class="dl-foot"><span id="dlCount"></span><button class="action" id="dlMore" type="button">Show 300 more</button></div>
       </div>
     </div>
