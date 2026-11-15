@@ -673,7 +673,20 @@
 
     .mode-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
     a.action { display: inline-flex; align-items: center; text-decoration: none; }
-</style>
+
+    .dl-back { position: fixed; inset: 0; z-index: 2000; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.55); padding: 16px; }
+    .dl-back.open { display: flex; }
+    .dl-box { width: min(980px, 100%); max-height: 88vh; display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text); box-shadow: 0 20px 60px rgba(0,0,0,.4); }
+    .dl-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--line); }
+    .dl-head h3 { margin: 0; font-size: 15px; }
+    .dl-head small { color: var(--muted); font-size: 11px; display: block; margin-top: 3px; }
+    .dl-scroll { overflow: auto; }
+    .dl-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    .dl-table th { position: sticky; top: 0; background: var(--panel); text-align: left; padding: 8px 10px; color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .dl-table td { padding: 7px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+    .dl-table tr:hover td { background: rgba(127,127,127,.12); }
+    .dl-foot { padding: 10px 16px; border-top: 1px solid var(--line); display: flex; gap: 10px; align-items: center; justify-content: space-between; font-size: 11px; color: var(--muted); }
+  </style>
 </head>
 <body>
   <div class="app">
@@ -812,6 +825,7 @@
             <span class="theme-mode" id="themeMode">Following your device theme</span>
           </div>
           <button class="action" id="resetButton" type="button">Reset filters</button>
+          <button class="action" id="listButton" type="button">Detection list ☰</button>
           <button class="action primary" id="downloadButton" type="button">Download visible data ↓</button>
         </div>
       </header>
@@ -1436,9 +1450,40 @@
         if (key === "live") liveTimer = setInterval(() => setRange("live", true), 10 * 60 * 1000);
       }
       document.querySelectorAll(".range-option").forEach(btn => btn.addEventListener("click", () => setRange(btn.dataset.range, false)));
+
+      (function () {
+        const back = $("dlBack"), body = $("dlBody"); let sorted = [], shown = 0; const STEP = 300;
+        const esc = v => String(v ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c]));
+        const hhmm = t => { const x = String(t ?? "").padStart(4, "0"); return x.slice(0, 2) + ":" + x.slice(2); };
+        function more() {
+          const part = sorted.slice(shown, shown + STEP);
+          body.insertAdjacentHTML("beforeend", part.map(p => `<tr><td>${esc(p.date)}</td><td>${hhmm(p.time)}</td><td>${esc(p.sensor)}</td><td>${esc(p.satellite)}</td><td>${Number(p.lat).toFixed(4)}</td><td>${Number(p.lon).toFixed(4)}</td><td>${esc(p.brightness)}</td><td>${esc(p.frp)}</td><td>${esc(p.confidence_level || p.confidence_raw)}</td><td>${p.category === "vegetation" ? "Fire" : "Static/offshore"}</td><td>${esc(p.fire_id || "–")}</td></tr>`).join(""));
+          shown += part.length;
+          $("dlCount").textContent = `Showing ${shown.toLocaleString("en-US")} of ${sorted.length.toLocaleString("en-US")} detections, newest first`;
+          $("dlMore").style.display = shown < sorted.length ? "" : "none";
+        }
+        $("listButton").addEventListener("click", () => {
+          sorted = visibleRows.slice().sort((a, b) => (b.date + String(b.time).padStart(4, "0")).localeCompare(a.date + String(a.time).padStart(4, "0")));
+          body.innerHTML = ""; shown = 0; more();
+          $("dlSub").textContent = "Follows the time range and filters currently applied to the map. Times are UTC.";
+          back.classList.add("open");
+        });
+        $("dlMore").addEventListener("click", more);
+        $("dlClose").addEventListener("click", () => back.classList.remove("open"));
+        back.addEventListener("click", e => { if (e.target === back) back.classList.remove("open"); });
+        document.addEventListener("keydown", e => { if (e.key === "Escape") back.classList.remove("open"); });
+      })();
       await setRange(rangeKey, false);
 
     })();
 </script>
+
+    <div class="dl-back" id="dlBack" role="dialog" aria-modal="true" aria-labelledby="dlTitle">
+      <div class="dl-box">
+        <div class="dl-head"><div><h3 id="dlTitle">Detection list</h3><small id="dlSub"></small></div><button class="action" id="dlClose" type="button">Close ✕</button></div>
+        <div class="dl-scroll"><table class="dl-table"><thead><tr><th>Date (UTC)</th><th>Time</th><th>Sensor</th><th>Satellite</th><th>Latitude</th><th>Longitude</th><th>Brightness (K)</th><th>FRP (MW)</th><th>Confidence</th><th>Type</th><th>Fire group</th></tr></thead><tbody id="dlBody"></tbody></table></div>
+        <div class="dl-foot"><span id="dlCount"></span><button class="action" id="dlMore" type="button">Show 300 more</button></div>
+      </div>
+    </div>
 </body>
 </html>
