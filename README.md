@@ -53,7 +53,6 @@ On GitHub, `.github/workflows/live.yml` (hourly) and `archive.yml` (daily) updat
 - Weather (settlement-risk prototype): Open-Meteo current 10 m wind — https://open-meteo.com
 - Province boundaries (province report and detection list): GADM 4.1 — https://gadm.org (free for academic and non-commercial use)
 - Settlements (villages, towns, cities) and district centres: GeoNames — https://www.geonames.org (CC BY 4.0)
-- Türkiye outline used to filter detections: [CONFIRM source and license before submission]
 
 ## Known limitations
 - **Data gaps (satellite events):** Nov 2025 – Aug 2026 comes from the FIRMS standard-processing archive. NASA reported an anomaly of the Suomi NPP satellite on 2 August 2026 (02:05 UTC); data from 3 August 02:00 UTC to 6 August 16:24 UTC was excluded from processing, and standard processing resumed on 10 August ([NASA Earthdata notice](https://www.earthdata.nasa.gov/data/alerts-outages/suomi-npp-viirs-data-outage-anomaly-august-2-2026)). In the FIRMS standard archive we pulled, August 2026 contains MODIS but no VIIRS records; we have not found an official explanation for the NOAA-20 part of this gap, so we simply mark August 2026 as MODIS-only. From 30 August 2026 the data comes from near-real-time (NRT) products.
@@ -68,14 +67,14 @@ On GitHub, `.github/workflows/live.yml` (hourly) and `archive.yml` (daily) updat
 - **Districts are approximate:** the district shown in the detection list and the risk table is the nearest district centre within the province (GeoNames), not a true district boundary. The province comes from real boundaries (GADM).
 
 ## Team
-- Ahmet — Team lead, harmonization, backend
-- Akay — Data & backend
-- Ceyhun — Design & frontend
+- Ahmet — leader, harmonization, backend
+- Akay — Data,backend,Design
+- Ceyhun — Frontend & Presentation
 - Rüzgar — Research & impact
 
 ## Notes on preparation and AI use
 - Before the event we prepared only the folder structure, empty templates and a data-download helper script. The harmonization logic, the maps and the results were built during the hackathon (14–15 November 2026).
-- AI tools (Claude and DeepSeek) were used for coding help, debugging and drafting text; every use is listed in `docs/AI_LOG.md`. The settlement-risk analysis itself is rule-based: no AI or machine-learning model produces the risk levels. We checked results by comparing them with NASA FIRMS data and with the fixed Belen result.
+- AI tools (Claude and DeepSeek) were used for coding and informational help, debugging and drafting text; every use is listed in `docs/AI_LOG.md`. The settlement-risk analysis itself is rule-based: no AI or machine-learning model produces the risk levels. We checked results by comparing them with NASA FIRMS data and with the fixed Belen result.
 
 ## License
 MIT
